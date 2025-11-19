@@ -1,0 +1,25 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Modify Recipe - Dbara{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="text-center fw-bold mb-5" style="color:#ffd700;">Modify "{{ recipe.title }}"</h1>
+    <div class="card shadow-lg p-5">
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="fw-bold">Title</label>
+                <input type="text" name="title" class="form-control" value="{{ recipe.title }}" required>
+            </div>
+            <div class="mb-3">
+                <label class="fw-bold">Description</label>
+                <textarea name="description" class="form-control" rows="5" required>{{ recipe.description }}</textarea>
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-yellow px-5 py-3 fw-bold">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

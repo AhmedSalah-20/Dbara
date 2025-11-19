@@ -1,0 +1,45 @@
+<!-- templates/accounts/login.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+{% block title %}Login - Dbara{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-header text-center py-4" style="background: black;">
+                    <h2 class="mb-0 text-warning fw-bold">Welcome Back!</h2>
+                    <p class="text-light mb-0">Log in to your Dbara account</p>
+                </div>
+                <div class="card-body p-5">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <input type="text" name="username" class="form-control form-control-lg" 
+                                   placeholder="Username or Email" required style="border-radius: 15px;">
+                        </div>
+                        <div class="mb-4">
+                            <input type="password" name="password" class="form-control form-control-lg" 
+                                   placeholder="Password" required style="border-radius: 15px;">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-yellow btn-lg fw-bold" 
+                                    style="border-radius: 50px; padding: 14px;">
+                                Login Now
+                            </button>
+                        </div>
+                    </form>
+                    <div class="text-center mt-4">
+                        <p class="mb-2">Don't have an account yet?</p>
+                        <a href="{% url 'accounts:signup' %}" class="btn btn-outline-dark px-5 py-2" 
+                           style="border-radius: 50px;">
+                            Join Us 
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

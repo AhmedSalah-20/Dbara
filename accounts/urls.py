@@ -17,4 +17,15 @@ urlpatterns = [
     path('chef/recipes/create/', views.create_recipe, name='create_recipe'),
     path('chef/recipes/<int:pk>/edit/', views.edit_recipe, name='edit_recipe'),      # ← CHANGED from modify_recipe
     path('chef/recipes/<int:pk>/delete/', views.delete_recipe, name='delete_recipe'),
+
+        # NUTRITIONNIST DASHBOARD
+    path('nutritionist/dashboard/', views.nutritionist_dashboard, name='nutritionist_dashboard'),
+    path('nutritionist/analyze/', views.nutritionist_analyze, name='nutritionist_analyze'),
+    path('nutritionist/fiches/', views.nutritionist_fiches, name='nutritionist_fiches'),
+    path('nutritionist/classification/', views.nutritionist_classification, name='nutritionist_classification'),
+    path('nutritionist/chatbot/', views.nutritionist_chatbot, name='nutritionist_chatbot'),
+    path('nutritionist/stats/', views.nutritionist_stats, name='nutritionist_stats'),
+    path('nutritionist/collaboration/', views.nutritionist_collaboration, name='nutritionist_collaboration'),
+
+    
 ]

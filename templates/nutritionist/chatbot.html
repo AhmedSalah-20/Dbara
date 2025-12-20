@@ -1,0 +1,61 @@
+<!-- templates/nutritionist/chatbot.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Chatbot Santé IA - Dr. {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="text-center display-5 fw-bold text-info mb-4">
+                🤖 Chatbot Santé IA - Dr. {{ user.username }}
+            </h1>
+
+            <!-- Zone de conversation -->
+            <div class="card shadow-lg mb-4" style="height: 60vh; overflow-y: auto; background: #f8f9fa;">
+                <div class="card-body p-4">
+                    {% if not chat_history %}
+                        <p class="text-center text-muted mt-5 fs-5">
+                            <em>Démarrez la conversation ! Posez une question nutrition 🍽️</em><br><br>
+                            Exemples :<br>
+                            • Combien de calories dans un couscous au poisson ?<br>
+                            • Le lablabi est-il bon pour la santé ?<br>
+                            • كيفاش نجم نقلل الملح في الشخشوخة؟
+                        </p>
+                    {% endif %}
+
+                    {% for msg in chat_history %}
+                        <!-- Message utilisateur -->
+                        <div class="text-end mb-4">
+                            <div class="bg-primary text-white p-3 rounded-3 d-inline-block" style="max-width: 80%;">
+                                {{ msg.user }}
+                            </div>
+                        </div>
+
+                        <!-- Réponse du bot -->
+                        <div class="text-start mb-4">
+                            <div class="bg-success text-white p-3 rounded-3 d-inline-block" style="max-width: 80%;">
+                                <strong>🤖 Dr. {{ user.username }} :</strong><br>
+                                {{ msg.bot|linebreaks }}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Formulaire d'envoi -->
+            <form method="POST" class="d-flex gap-2">
+                {% csrf_token %}
+                <input type="text" name="message" class="form-control form-control-lg" 
+                       placeholder="Posez votre question nutrition..." required autocomplete="off">
+                <button type="submit" class="btn btn-info btn-lg px-5">Envoyer</button>
+            </form>
+
+            <div class="text-center mt-3">
+                <small class="text-muted">Propulsé par Google Gemini • Réponses instantanées & précises ✨</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

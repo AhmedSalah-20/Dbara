@@ -51,9 +51,11 @@
             <li class="nav-item"><a class="nav-link" href="#">Chefs</a></li>
             <li class="nav-item"><a class="nav-link" href="#">Nutritionists</a></li>
 
-            {% if user.is_authenticated %}
+           {% if user.is_authenticated %}
     {% if user.is_staff %}
-        <li class="nav-item"><a class="nav-link btn btn-danger btn-sm mx-2 fw-bold" href="/admin/">Administrator ⚙️</a></li>
+        <li class="nav-item">
+            <a class="nav-link btn btn-danger btn-sm mx-2 fw-bold" href="/admin/">Administrator ⚙️</a>
+        </li>
     {% else %}
         {% with profile=user.userprofile %}
             {% if profile %}
@@ -65,13 +67,18 @@
                     </li>
                 {% elif profile.role == 'nutritionist' %}
                     <li class="nav-item">
-                        <a class="nav-link btn btn-info btn-sm mx-2 text-white" href="#">Nutritionist Panel (soon)</a>
+                        <a class="nav-link btn btn-info btn-sm mx-2 text-white fw-bold" href="{% url 'accounts:nutritionist_dashboard' %}">
+                            Mon Cabinet 🥗
+                        </a>
                     </li>
                 {% endif %}
             {% endif %}
         {% endwith %}
     {% endif %}
-    <li class="nav-item"><a class="nav-link text-danger" href="{% url 'accounts:logout' %}">Logout ({{ user.username }})</a></li>
+
+    <li class="nav-item">
+        <a class="nav-link text-danger" href="{% url 'accounts:logout' %}">Logout ({{ user.username }})</a>
+    </li>
 {% else %}
                 <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Login</a></li>
                 <li class="nav-item"><a class="nav-link btn btn-yellow px-4" href="{% url 'accounts:signup' %}">Join Us</a></li>

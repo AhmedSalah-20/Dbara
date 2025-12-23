@@ -273,3 +273,34 @@ def nutritionist_chatbot(request):
     return render(request, 'nutritionist/chatbot.html', {
         'chat_history': chat_history
     })
+# ====================== PAGES PUBLIQUES ======================
+
+def chefs_list(request):
+    chefs = UserProfile.objects.filter(role='chef').select_related('user')
+    # On ajoute le nombre de recettes approuvées pour chaque chef
+    for profile in chefs:
+        profile.recipe_count = profile.user.recipe_set.filter(is_approved=True).count()
+    
+    context = {
+        'chefs': chefs,
+        'page_title': 'Nos Chefs Tunisiens 🔥'
+    }
+    return render(request, 'public/chefs_list.html', context)
+
+
+def nutritionists_list(request):
+    nutritionists = UserProfile.objects.filter(role='nutritionist').select_related('user')
+    context = {
+        'nutritionists': nutritionists,
+        'page_title': 'Nos Nutritionnistes 🥗'
+    }
+    return render(request, 'public/nutritionists_list.html', context)
+
+
+def public_recipes(request):
+    recipes = Recipe.objects.filter(is_approved=True).select_related('author').prefetch_related('images').order_by('-created_at')
+    context = {
+        'recipes': recipes,
+        'page_title': 'Toutes les Recettes Tunisiennes'
+    }
+    return render(request, 'public/recipes_list.html', context)

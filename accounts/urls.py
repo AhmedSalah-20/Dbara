@@ -27,5 +27,8 @@ urlpatterns = [
     path('nutritionist/stats/', views.nutritionist_stats, name='nutritionist_stats'),
     path('nutritionist/collaboration/', views.nutritionist_collaboration, name='nutritionist_collaboration'),
 
-    
+    # PAGES PUBLIQUES – AJOUTÉES ICI
+    path('chefs/', views.chefs_list, name='chefs_list'),
+    path('nutritionists/', views.nutritionists_list, name='nutritionists_list'),
+    path('recipes/', views.public_recipes, name='public_recipes'),
 ]

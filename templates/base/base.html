@@ -47,9 +47,9 @@
         </form>
 
         <ul class="navbar-nav ms-auto align-items-center">
-            <li class="nav-item"><a class="nav-link" href="#">Recipes</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Chefs</a></li>
-            <li class="nav-item"><a class="nav-link" href="#">Nutritionists</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'accounts:public_recipes' %}">Recipes</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'accounts:chefs_list' %}">Chefs</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'accounts:nutritionists_list' %}">Nutritionists</a></li>
 
            {% if user.is_authenticated %}
     {% if user.is_staff %}

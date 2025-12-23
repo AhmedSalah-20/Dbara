@@ -1,0 +1,37 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center display-4 fw-bold mb-5" style="color:#ffd700;">
+        {{ page_title }}
+    </h1>
+
+    <div class="row g-4">
+        {% for recipe in recipes %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow h-100 border-0">
+                {% if recipe.images.first %}
+                    <img src="{{ recipe.images.first.image.url }}" class="card-img-top" style="height:230px; object-fit:cover;">
+                {% else %}
+                    <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:230px; object-fit:cover;">
+                {% endif %}
+                <div class="card-body bg-dark text-white">
+                    <h5 class="card-title fw-bold">{{ recipe.title }}</h5>
+                    <p class="small text-warning">
+                        Par Chef {{ recipe.author.username }} • {{ recipe.views }} vues
+                    </p>
+                    <a href="#" class="btn btn-outline-warning btn-sm">Voir la recette</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 col-12">
+            <p class="lead text-muted">Aucune recette publiée pour le moment...</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

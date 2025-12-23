@@ -1,0 +1,37 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center display-4 fw-bold mb-5 text-success">
+        {{ page_title }}
+    </h1>
+
+    <div class="row g-4">
+        {% for profile in nutritionists %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg h-100 border-0 hover-lift">
+                <div class="text-center pt-4">
+                    <img src="{% static 'images/default-nutritionist.jpg' %}" class="rounded-circle border border-success border-4" width="120" height="120">
+                </div>
+                <div class="card-body text-center">
+                    <h4 class="card-title fw-bold">Dr. {{ profile.user.username }}</h4>
+                    <p class="text-success">Nutritionniste Certifié</p>
+                    <a href="{% url 'accounts:nutritionist_chatbot' %}" class="btn btn-info btn-sm text-white">Poser une question</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <p class="lead text-muted">Aucun nutritionniste inscrit pour le moment...</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.hover-lift:hover { transform: translateY(-10px); transition: 0.3s; }
+</style>
+{% endblock %}

@@ -10,10 +10,11 @@ from django.db import transaction
 from django.conf import settings
 import google.generativeai as genai
 from .models import UserProfile, Recipe, RecipeImage
-
+from django.db import models
 
 # ====================== BASIC VIEWS ======================
 def home(request):
+    # Redirections pour les utilisateurs connectés
     if request.user.is_authenticated:
         if request.user.is_staff:
             return redirect('/admin/')
@@ -24,8 +25,23 @@ def home(request):
                 return redirect('accounts:nutritionist_dashboard')
         except UserProfile.DoesNotExist:
             pass
-    return render(request, 'base/home.html')
 
+    # 3 chefs les plus récemment inscrits
+    recent_chefs = UserProfile.objects.filter(role='chef').select_related('user').order_by('-user__date_joined')[:3]
+    for profile in recent_chefs:
+        profile.recipe_count = profile.user.recipes.filter(is_approved=True).count()  # ← CORRIGÉ ICI
+
+    # 3 recettes les plus récentes approuvées
+    popular_recipes = Recipe.objects.filter(is_approved=True) \
+        .select_related('author') \
+        .prefetch_related('images') \
+        .order_by('-created_at')[:3]
+
+    context = {
+        'recent_chefs': recent_chefs,
+        'popular_recipes': popular_recipes,
+    }
+    return render(request, 'base/home.html', context)
 
 def signup(request):
     if request.method == 'POST':
@@ -36,31 +52,52 @@ def signup(request):
         role = request.POST.get('role', 'visitor')
 
         if password1 != password2:
-            messages.error(request, "Les mots de passe ne correspondent pas")
+            messages.error(request, "Passwords do not match")
             return render(request, 'accounts/signup.html')
 
         if User.objects.filter(username=username).exists():
-            messages.error(request, "Ce nom d'utilisateur est déjà pris")
+            messages.error(request, "Username already taken")
             return render(request, 'accounts/signup.html')
 
         if User.objects.filter(email=email).exists():
-            messages.error(request, "Cet email est déjà utilisé")
+            messages.error(request, "Email already registered")
             return render(request, 'accounts/signup.html')
 
         with transaction.atomic():
+            # Create user but deactivate until admin approval (for chefs only)
             user = User.objects.create_user(username=username, email=email, password=password1)
-            UserProfile.objects.create(user=user, role=role)
-            login(request, user)
-            messages.success(request, f"Bienvenue {username} !")
-
             if role == 'chef':
-                return redirect('accounts:chef_dashboard')
-            elif role == 'nutritionist':
-                return redirect('accounts:nutritionist_dashboard')
-            return redirect('accounts:home')
+                user.is_active = False  # Chef cannot login until approved
+                user.save()
+
+            profile = UserProfile.objects.create(user=user, role=role)
+
+            # Save chef-specific fields
+            if role == 'chef':
+                profile.speciality = request.POST.get('speciality')
+                profile.region = request.POST.get('region')
+                profile.years_experience = request.POST.get('years_experience') or None
+                profile.bio = request.POST.get('bio')
+
+                if 'profile_picture' in request.FILES:
+                    profile.profile_picture = request.FILES['profile_picture']
+                if 'certificate' in request.FILES:
+                    profile.certificate = request.FILES['certificate']
+
+                profile.save()
+
+                messages.success(request, "Your chef account has been created! It is pending admin approval. You will receive an email when approved.")
+            else:
+                messages.success(request, f"Welcome {username}! Your account is ready.")
+
+            # Login only if not chef (chefs wait for approval)
+            if role != 'chef':
+                login(request, user)
+                return redirect('accounts:home')
+
+            return redirect('accounts:login')
 
     return render(request, 'accounts/signup.html')
-
 
 def login_view(request):
     if request.method == 'POST':
@@ -177,6 +214,62 @@ def delete_recipe(request, pk):
 
 
 # ====================== NUTRITIONIST DASHBOARD ======================
+
+@login_required
+def edit_profile(request):
+    try:
+        profile = request.user.userprofile
+        if profile.role not in ['chef', 'nutritionist']:
+            messages.error(request, "Access denied.")
+            return redirect('accounts:home')
+    except UserProfile.DoesNotExist:
+        messages.error(request, "Profile not found.")
+        return redirect('accounts:home')
+
+    if request.method == 'POST':
+        # Update User fields
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+
+        if username and username != request.user.username:
+            if User.objects.filter(username=username).exclude(pk=request.user.pk).exists():
+                messages.error(request, "This username is already taken.")
+                return render(request, 'chef/edit_profile.html', {'profile': profile})
+            request.user.username = username
+
+        if email and email != request.user.email:
+            if User.objects.filter(email=email).exclude(pk=request.user.pk).exists():
+                messages.error(request, "This email is already registered.")
+                return render(request, 'chef/edit_profile.html', {'profile': profile})
+            request.user.email = email
+
+        if password:
+            request.user.set_password(password)
+
+        request.user.save()
+
+        # Update Profile fields
+        profile.bio = request.POST.get('bio', profile.bio)
+        profile.speciality = request.POST.get('speciality', profile.speciality)
+        profile.region = request.POST.get('region', profile.region)
+        profile.years_experience = request.POST.get('years_experience') or None
+
+        if 'profile_picture' in request.FILES:
+            profile.profile_picture = request.FILES['profile_picture']
+        if 'certificate' in request.FILES:
+            profile.certificate = request.FILES['certificate']
+
+        profile.save()
+
+        messages.success(request, "Your profile has been updated successfully!")
+        return redirect('accounts:chef_dashboard')
+
+    context = {
+        'profile': profile,
+    }
+    return render(request, 'chef/edit_profile.html', context)
+
 @login_required
 def nutritionist_dashboard(request):
     if request.user.is_staff:
@@ -277,13 +370,21 @@ def nutritionist_chatbot(request):
 
 def chefs_list(request):
     chefs = UserProfile.objects.filter(role='chef').select_related('user')
-    # On ajoute le nombre de recettes approuvées pour chaque chef
     for profile in chefs:
-        profile.recipe_count = profile.user.recipe_set.filter(is_approved=True).count()
-    
+        profile.recipe_count = profile.user.recipes.filter(is_approved=True).count()
+
+    # Profil de l'utilisateur connecté pour la navbar
+    current_profile = None
+    if request.user.is_authenticated:
+        try:
+            current_profile = request.user.userprofile
+        except UserProfile.DoesNotExist:
+            current_profile = None
+
     context = {
         'chefs': chefs,
-        'page_title': 'Nos Chefs Tunisiens 🔥'
+        'page_title': 'Nos Chefs Tunisiens 🔥',
+        'current_profile': current_profile,  # ← IMPORTANT
     }
     return render(request, 'public/chefs_list.html', context)
 
@@ -304,3 +405,95 @@ def public_recipes(request):
         'page_title': 'Toutes les Recettes Tunisiennes'
     }
     return render(request, 'public/recipes_list.html', context)
+
+
+
+def search_recipes(request):
+    query = request.GET.get('q', '').strip()
+    
+    recipes = []
+    chefs = []
+    nutritionists = []
+
+    if query:
+        # Recherche dans les recettes (titre ou description)
+        recipes = Recipe.objects.filter(is_approved=True) \
+            .filter(models.Q(title__icontains=query) | models.Q(description__icontains=query)) \
+            .select_related('author') \
+            .prefetch_related('images') \
+            .order_by('-created_at')
+
+        # Recherche dans les chefs (nom d'utilisateur)
+        chefs = UserProfile.objects.filter(role='chef') \
+            .filter(user__username__icontains=query) \
+            .select_related('user')
+
+        # Recherche dans les nutritionnistes
+        nutritionists = UserProfile.objects.filter(role='nutritionist') \
+            .filter(user__username__icontains=query) \
+            .select_related('user')
+
+        # Ajoute le nombre de recettes pour les chefs trouvés
+        for profile in chefs:
+            profile.recipe_count = profile.user.recipes.filter(is_approved=True).count()
+
+    context = {
+        'query': query,
+        'recipes': recipes,
+        'chefs': chefs,
+        'nutritionists': nutritionists,
+        'has_results': bool(recipes or chefs or nutritionists),
+    }
+    return render(request, 'public/search_results.html', context)
+
+
+def recipe_detail(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk, is_approved=True)
+    
+    # Key to track if this user/session has already viewed this recipe
+    session_key = f"viewed_recipe_{recipe.pk}"
+    
+    # If the current user is the author (chef), don't count view
+    if request.user.is_authenticated and request.user == recipe.author:
+        viewed = True  # Don't count
+    else:
+        # For visitors or other users: count only once per session
+        viewed = request.session.get(session_key, False)
+    
+    # If not viewed yet, increment view count
+    if not viewed:
+        recipe.views += 1
+        recipe.save(update_fields=['views'])
+        request.session[session_key] = True  # Mark as viewed in this session
+    
+    context = {
+        'recipe': recipe,
+    }
+    return render(request, 'public/recipe_detail.html', context)
+
+
+def chef_profile_detail(request, username):
+    profile = get_object_or_404(UserProfile, user__username=username, role='chef')
+    recipes = Recipe.objects.filter(author=profile.user, is_approved=True) \
+        .prefetch_related('images') \
+        .order_by('-created_at')
+    
+    context = {
+        'chef_profile': profile,
+        'recipes': recipes,
+        'recipe_count': recipes.count(),
+    }
+    return render(request, 'public/chef_profile_detail.html', context)
+
+
+def chef_recipes(request, username):
+    profile = get_object_or_404(UserProfile, user__username=username, role='chef')
+    recipes = Recipe.objects.filter(author=profile.user, is_approved=True) \
+        .prefetch_related('images') \
+        .order_by('-created_at')
+    
+    context = {
+        'chef_profile': profile,
+        'recipes': recipes,
+    }
+    return render(request, 'public/chef_recipes.html', context)

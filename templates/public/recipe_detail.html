@@ -1,0 +1,74 @@
+<!-- templates/public/recipe_detail.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ recipe.title }} - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Images Carousel -->
+        <div class="col-lg-8 mb-4">
+            <div id="recipeCarousel" class="carousel slide shadow-lg rounded-3" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% for image in recipe.images.all %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{{ image.image.url }}" class="d-block w-100" style="max-height:600px; object-fit:cover;" alt="{{ recipe.title }}">
+                    </div>
+                    {% empty %}
+                    <div class="carousel-item active">
+                        <img src="{% static 'images/default-recipe.jpg' %}" class="d-block w-100" style="max-height:600px; object-fit:cover;" alt="{{ recipe.title }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if recipe.images.all|length > 1 %}
+                <button class="carousel-control-prev" type="button" data-bs-target="#recipeCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#recipeCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recipe Info -->
+        <div class="col-lg-4">
+            <div class="card shadow-lg border-0 h-100">
+                <div class="card-body">
+                    <h1 class="display-6 fw-bold text-warning mb-3">{{ recipe.title }}</h1>
+                    <p class="text-muted mb-4">
+                        By <strong>Chef {{ recipe.author.username }}</strong> • {{ recipe.views }} view{{ recipe.views|pluralize }}
+                    </p>
+
+                    <div class="row text-center mb-4 g-3">
+                        <div class="col-4">
+                            <h5 class="fw-bold">{{ recipe.prep_time }} min</h5>
+                            <small class="text-muted">Prep Time</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="fw-bold">{{ recipe.cook_time }} min</h5>
+                            <small class="text-muted">Cook Time</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="fw-bold">{{ recipe.servings }}</h5>
+                            <small class="text-muted">Serving{{ recipe.servings|pluralize }}</small>
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary">
+
+                    <h4 class="fw-bold mb-3">Description</h4>
+                    <p class="lead">{{ recipe.description|linebreaks }}</p>
+
+                    <div class="text-center mt-5">
+                        <a href="{% url 'accounts:public_recipes' %}" class="btn btn-secondary btn-lg px-5">
+                            ← Back to Recipes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

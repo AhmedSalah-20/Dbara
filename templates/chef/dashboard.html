@@ -6,11 +6,15 @@
 
 {% block content %}
 <div class="container py-5">
+    <!-- Header de bienvenue -->
     <div class="text-center mb-5 p-5 bg-black text-white rounded-3 shadow-lg">
         <h1 class="display-4 fw-bold">
             Welcome Back, <span style="color:#ffd700;">Chef {{ user.username }}</span> 🇹🇳
         </h1>
         <p class="lead fs-3">Your personal Tunisian kitchen dashboard</p>
+        
+        <!-- Bouton Modifier mon profil -->
+        
     </div>
 
     <!-- Stats Cards -->
@@ -51,9 +55,9 @@
             <div class="col-md-6 col-lg-4">
                 <div class="card shadow h-100 border-0">
                     {% if recipe.images.first %}
-                        <img src="{{ recipe.images.first.image.url }}" class="card-img-top" style="height:230px; object-fit:cover;">
+                        <img src="{{ recipe.images.first.image.url }}" class="card-img-top" style="height:230px; object-fit:cover;" alt="{{ recipe.title }}">
                     {% else %}
-                        <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:230px; object-fit:cover;">
+                        <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:230px; object-fit:cover;" alt="Recette par défaut">
                     {% endif %}
                     <div class="card-body d-flex flex-column bg-dark text-white">
                         <h5 class="card-title fw-bold">{{ recipe.title }}</h5>

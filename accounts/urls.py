@@ -31,4 +31,13 @@ urlpatterns = [
     path('chefs/', views.chefs_list, name='chefs_list'),
     path('nutritionists/', views.nutritionists_list, name='nutritionists_list'),
     path('recipes/', views.public_recipes, name='public_recipes'),
+
+    path('chef/profile/edit/', views.edit_profile, name='edit_profile'),
+    path('search/', views.search_recipes, name='search_recipes'),
+
+    path('recipe/<int:pk>/', views.recipe_detail, name='recipe_detail'),
+
+
+    path('chef/<str:username>/', views.chef_profile_detail, name='chef_profile_detail'),
+    path('chef/<str:username>/recipes/', views.chef_recipes, name='chef_recipes'),
 ]

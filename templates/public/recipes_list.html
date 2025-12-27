@@ -23,7 +23,11 @@
                     <p class="small text-warning">
                         Par Chef {{ recipe.author.username }} • {{ recipe.views }} vues
                     </p>
-                    <a href="#" class="btn btn-outline-warning btn-sm">Voir la recette</a>
+                    {% if recipe.pk %}
+    <a href="{% url 'accounts:recipe_detail' recipe.pk %}" class="btn btn-outline-warning btn-sm">View Recipe</a>
+{% else %}
+    <span class="btn btn-outline-secondary btn-sm disabled">View Recipe</span>
+{% endif %}
                 </div>
             </div>
         </div>

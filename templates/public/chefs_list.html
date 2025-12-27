@@ -1,12 +1,13 @@
+<!-- templates/public/chefs_list.html -->
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}{{ page_title }} - Dbara{% endblock %}
+{% block title %}Our Tunisian Chefs - Dbara{% endblock %}
 
 {% block content %}
 <div class="container py-5">
     <h1 class="text-center display-4 fw-bold mb-5" style="color:#ffd700;">
-        {{ page_title }}
+        Our Tunisian Chefs 🔥
     </h1>
 
     <div class="row g-4">
@@ -14,27 +15,40 @@
         <div class="col-md-6 col-lg-4">
             <div class="card shadow-lg h-100 border-0 hover-lift">
                 <div class="text-center pt-4">
-                    <img src="{% static 'images/default-chef.jpg' %}" class="rounded-circle border border-warning border-4" width="120" height="120">
+                    <img src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}{% static 'images/default-chef.jpg' %}{% endif %}" 
+                         class="rounded-circle border border-warning border-4" 
+                         width="120" height="120" alt="{{ profile.user.username }}">
                 </div>
                 <div class="card-body text-center">
                     <h4 class="card-title fw-bold">{{ profile.user.username }}</h4>
-                    <p class="text-warning">Chef Tunisien Expert</p>
+                    <p class="text-warning">Tunisian Chef Expert</p>
                     <p class="text-muted">
-                        {{ profile.recipe_count }} recettes publiées
+                        {{ profile.recipe_count }} recipe{{ profile.recipe_count|pluralize }} published
                     </p>
-                    <a href="#" class="btn btn-warning btn-sm">Voir ses recettes</a>
+                    <div class="d-flex gap-2 justify-content-center mt-3">
+                        <a href="{% url 'accounts:chef_profile_detail' profile.user.username %}" 
+                           class="btn btn-outline-primary btn-sm">
+                            View Profile
+                        </a>
+                     
+                    </div>
                 </div>
             </div>
         </div>
         {% empty %}
-        <div class="text-center py-5">
-            <p class="lead text-muted">Aucun chef inscrit pour le moment...</p>
+        <div class="col-12 text-center py-5">
+            <p class="lead text-muted">No chefs registered yet...</p>
+            <a href="{% url 'accounts:home' %}" class="btn btn-warning btn-lg">Back to Home</a>
         </div>
         {% endfor %}
     </div>
 </div>
 
 <style>
-.hover-lift:hover { transform: translateY(-10px); transition: 0.3s; }
+    .hover-lift:hover { 
+        transform: translateY(-10px); 
+        transition: 0.3s; 
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
 </style>
 {% endblock %}

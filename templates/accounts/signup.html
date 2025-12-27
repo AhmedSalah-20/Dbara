@@ -1,82 +1,153 @@
 <!-- templates/accounts/signup.html -->
 {% extends 'base/base.html' %}
 {% load static %}
-{% block title %}Join Us - Dbara{% endblock %}
+
+{% block title %}Join Dbara - Create Account{% endblock %}
 
 {% block content %}
-<div class="container my-5">
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-7 col-lg-6">
-            <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
-                <div class="card-header text-center py-4" style="background: black;">
-                    <h2 class="mb-0 text-warning fw-bold">Join Dbara Today!</h2>
-                    <p class="text-light mb-0">Choose your role and become part of our community</p>
+        <div class="col-lg-7">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-black text-warning text-center py-4 rounded-top">
+                    <h2 class="mb-0 fw-bold">Create Your Dbara Account</h2>
                 </div>
                 <div class="card-body p-5">
-                    <form method="post">
+                    <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <input type="text" name="username" class="form-control form-control-lg" 
-                                       placeholder="Username" required style="border-radius: 15px;">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="email" name="email" class="form-control form-control-lg" 
-                                       placeholder="Email" required style="border-radius: 15px;">
-                            </div>
+
+                        <!-- Username -->
+                        <div class="mb-4">
+                            <label for="username" class="form-label fw-bold">Username</label>
+                            <input type="text" name="username" id="username" class="form-control form-control-lg" required>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <input type="password" name="password1" class="form-control form-control-lg" 
-                                       placeholder="Password" required style="border-radius: 15px;">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <input type="password" name="password2" class="form-control form-control-lg" 
-                                       placeholder="Confirm Password" required style="border-radius: 15px;">
-                            </div>
+
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label for="email" class="form-label fw-bold">Email Address</label>
+                            <input type="email" name="email" id="email" class="form-control form-control-lg" required>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-4">
+                            <label for="password1" class="form-label fw-bold">Password</label>
+                            <input type="password" name="password1" id="password1" class="form-control form-control-lg" required>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-4">
+                            <label for="password2" class="form-label fw-bold">Confirm Password</label>
+                            <input type="password" name="password2" id="password2" class="form-control form-control-lg" required>
                         </div>
 
                         <!-- Role Selection -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold text-dark">I want to join as:</label>
-                            <div class="row text-center">
-                                <div class="col-4">
-                                    <input type="radio" name="role" value="chef" id="chef" class="btn-check" required>
-                                    <label class="btn btn-outline-warning w-100 py-3" for="chef">
-                                        Chef
-                                    </label>
-                                </div>
-                                <div class="col-4">
-                                    <input type="radio" name="role" value="nutritionist" id="nutritionist" class="btn-check">
-                                    <label class="btn btn-outline-info w-100 py-3" for="nutritionist">
-                                        Nutritionist
-                                    </label>
-                                </div>
-                                <div class="col-4">
-                                    <input type="radio" name="role" value="visitor" id="visitor" class="btn-check" checked>
-                                    <label class="btn btn-outline-secondary w-100 py-3" for="visitor">
-                                        Visitor
-                                    </label>
-                                </div>
+                            <label for="roleSelect" class="form-label fw-bold">I want to register as</label>
+                            <select name="role" class="form-select form-select-lg" id="roleSelect" onchange="toggleChefFields()" required>
+                                <option value="visitor">Visitor</option>
+                                <option value="chef">Chef</option>
+                                <option value="nutritionist">Nutritionist</option>
+                            </select>
+                        </div>
+
+                        <!-- Chef-specific fields (hidden by default) -->
+                        <div id="chefFields" style="display:none;">
+                            <div class="alert alert-info">
+                                <strong>Note:</strong> Chef accounts require admin approval. You will receive an email when your account is activated.
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="profile_picture" class="form-label fw-bold">Profile Picture</label>
+                                <input type="file" name="profile_picture" id="profile_picture" class="form-control form-control-lg" accept="image/*">
+                                <small class="text-muted">Recommended: clear photo of yourself</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="certificate" class="form-label fw-bold">Culinary Certificate (PDF or Image)</label>
+                                <input type="file" name="certificate" id="certificate" class="form-control form-control-lg" accept=".pdf,image/*" required>
+                                <small class="text-muted">Required for verification by admin</small>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="speciality" class="form-label fw-bold">Speciality</label>
+                                <select name="speciality" id="speciality" class="form-select form-select-lg" required>
+                                    <option value="">-- Choose your speciality --</option>
+                                    <option value="traditional">Traditional Tunisian</option>
+                                    <option value="seafood">Seafood Specialist</option>
+                                    <option value="pastry">Pastry & Desserts</option>
+                                    <option value="grill">Grill & BBQ</option>
+                                    <option value="vegetarian">Vegetarian & Healthy</option>
+                                    <option value="fusion">Modern Fusion</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="region" class="form-label fw-bold">Region</label>
+                                <select name="region" id="region" class="form-select form-select-lg" required>
+                                    <option value="">-- Select your region --</option>
+                                    <option value="tunis">Tunis</option>
+                                    <option value="ariana">Ariana</option>
+                                    <option value="sfax">Sfax</option>
+                                    <option value="sousse">Sousse</option>
+                                    <option value="monastir">Monastir</option>
+                                    <option value="bizerte">Bizerte</option>
+                                    <option value="nabeul">Nabeul</option>
+                                    <option value="other">Other Region</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="years_experience" class="form-label fw-bold">Years of Experience</label>
+                                <input type="number" name="years_experience" id="years_experience" class="form-control form-control-lg" min="0" max="60">
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="bio" class="form-label fw-bold">Short Bio</label>
+                                <textarea name="bio" id="bio" class="form-control" rows="5" placeholder="Tell us about your culinary journey, your passion, your favorite dishes..."></textarea>
                             </div>
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-yellow btn-lg fw-bold" 
-                                    style="border-radius: 50px; padding: 16px;">
-                                Create My Account
+                        <!-- Submit Button -->
+                        <div class="text-center mt-5">
+                            <button type="submit" class="btn btn-yellow btn-lg px-5 fw-bold shadow">
+                                Create Account
                             </button>
                         </div>
-                    </form>
 
-                    <div class="text-center mt-4">
-                        <p class="mb-0">Already have an account? 
-                            <a href="{% url 'accounts:login' %}" class="text-warning fw-bold">Login here</a>
-                        </p>
-                    </div>
+                        <div class="text-center mt-3">
+                            <p class="text-muted">Already have an account? <a href="{% url 'accounts:login' %}" class="text-warning fw-bold">Login here</a></p>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function toggleChefFields() {
+    const role = document.getElementById('roleSelect').value;
+    const chefFields = document.getElementById('chefFields');
+    
+    if (role === 'chef') {
+        chefFields.style.display = 'block';
+        // Make chef-specific fields required
+        document.querySelectorAll('#chefFields input, #chefFields select').forEach(el => {
+            if (el.name === 'certificate' || el.name === 'speciality' || el.name === 'region') {
+                el.required = true;
+            }
+        });
+    } else {
+        chefFields.style.display = 'none';
+        // Remove required when hidden
+        document.querySelectorAll('#chefFields input, #chefFields select').forEach(el => {
+            el.required = false;
+        });
+    }
+}
+
+// Run on page load in case of validation error
+window.onload = toggleChefFields;
+</script>
 {% endblock %}

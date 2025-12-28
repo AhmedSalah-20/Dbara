@@ -52,50 +52,53 @@ def signup(request):
         role = request.POST.get('role', 'visitor')
 
         if password1 != password2:
-            messages.error(request, "Passwords do not match")
+            messages.error(request, "Passwords do not match.")
             return render(request, 'accounts/signup.html')
 
         if User.objects.filter(username=username).exists():
-            messages.error(request, "Username already taken")
+            messages.error(request, "Username already taken.")
             return render(request, 'accounts/signup.html')
 
         if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already registered")
+            messages.error(request, "Email already registered.")
             return render(request, 'accounts/signup.html')
 
         with transaction.atomic():
-            # Create user but deactivate until admin approval (for chefs only)
             user = User.objects.create_user(username=username, email=email, password=password1)
-            if role == 'chef':
-                user.is_active = False  # Chef cannot login until approved
-                user.save()
 
             profile = UserProfile.objects.create(user=user, role=role)
 
-            # Save chef-specific fields
-            if role == 'chef':
-                profile.speciality = request.POST.get('speciality')
-                profile.region = request.POST.get('region')
+            # Pour Chef et Nutritionniste : compte désactivé jusqu'à approbation admin
+            if role in ['chef', 'nutritionist']:
+                user.is_active = False
+                user.save()
+
+                # Champs communs aux pros
+                profile.region = request.POST.get('region', '')
                 profile.years_experience = request.POST.get('years_experience') or None
-                profile.bio = request.POST.get('bio')
+                profile.bio = request.POST.get('bio', '')
 
                 if 'profile_picture' in request.FILES:
                     profile.profile_picture = request.FILES['profile_picture']
                 if 'certificate' in request.FILES:
                     profile.certificate = request.FILES['certificate']
 
+                # Speciality uniquement pour les chefs
+                if role == 'chef':
+                    profile.speciality = request.POST.get('speciality', '')
+
                 profile.save()
 
-                messages.success(request, "Your chef account has been created! It is pending admin approval. You will receive an email when approved.")
+                messages.success(request, 
+                    "Your nutritionist account has been created and is pending admin approval. "
+                    "You will receive an email when your account is activated.")
+                return redirect('accounts:login')
+
             else:
-                messages.success(request, f"Welcome {username}! Your account is ready.")
-
-            # Login only if not chef (chefs wait for approval)
-            if role != 'chef':
+                # Visiteur : compte actif immédiatement
                 login(request, user)
+                messages.success(request, f"Welcome {username}! Your account is ready.")
                 return redirect('accounts:home')
-
-            return redirect('accounts:login')
 
     return render(request, 'accounts/signup.html')
 
@@ -219,15 +222,17 @@ def delete_recipe(request, pk):
 def edit_profile(request):
     try:
         profile = request.user.userprofile
-        if profile.role not in ['chef', 'nutritionist']:
-            messages.error(request, "Access denied.")
-            return redirect('accounts:home')
     except UserProfile.DoesNotExist:
         messages.error(request, "Profile not found.")
         return redirect('accounts:home')
 
+    # Autorise chefs ET nutritionnistes
+    if profile.role not in ['chef', 'nutritionist']:
+        messages.error(request, "Access restricted to professional accounts.")
+        return redirect('accounts:home')
+
     if request.method == 'POST':
-        # Update User fields
+        # Mise à jour User
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
@@ -246,12 +251,13 @@ def edit_profile(request):
 
         if password:
             request.user.set_password(password)
+            messages.info(request, "Your password has been updated. Please log in again.")
+            return redirect('accounts:logout')
 
         request.user.save()
 
-        # Update Profile fields
+        # Mise à jour Profile
         profile.bio = request.POST.get('bio', profile.bio)
-        profile.speciality = request.POST.get('speciality', profile.speciality)
         profile.region = request.POST.get('region', profile.region)
         profile.years_experience = request.POST.get('years_experience') or None
 
@@ -260,10 +266,14 @@ def edit_profile(request):
         if 'certificate' in request.FILES:
             profile.certificate = request.FILES['certificate']
 
+        # Speciality seulement pour les chefs
+        if profile.role == 'chef':
+            profile.speciality = request.POST.get('speciality', profile.speciality)
+
         profile.save()
 
         messages.success(request, "Your profile has been updated successfully!")
-        return redirect('accounts:chef_dashboard')
+        return redirect('accounts:chef_dashboard')  # ou nutritionist_dashboard si tu en as un
 
     context = {
         'profile': profile,
@@ -449,23 +459,31 @@ def search_recipes(request):
 
 def recipe_detail(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk, is_approved=True)
-    
-    # Key to track if this user/session has already viewed this recipe
-    session_key = f"viewed_recipe_{recipe.pk}"
-    
-    # If the current user is the author (chef), don't count view
+
+    # Clé unique pour cette recette et cette session/utilisateur
+    view_key = f"recipe_viewed_{recipe.pk}"
+
+    # Cas 1 : Le chef voit sa propre recette → pas de vue comptée
     if request.user.is_authenticated and request.user == recipe.author:
-        viewed = True  # Don't count
+        has_viewed = True
+
+    # Cas 2 : Utilisateur connecté (nutritionniste, visiteur connecté)
+    elif request.user.is_authenticated:
+        has_viewed = request.session.get(view_key, False)
+        if not has_viewed:
+            request.session[view_key] = True
+
+    # Cas 3 : Visiteur non connecté → on utilise la session anonyme
     else:
-        # For visitors or other users: count only once per session
-        viewed = request.session.get(session_key, False)
-    
-    # If not viewed yet, increment view count
-    if not viewed:
+        has_viewed = request.session.get(view_key, False)
+        if not has_viewed:
+            request.session[view_key] = True
+
+    # On incrémente la vue seulement si ce n'est pas déjà compté
+    if not has_viewed:
         recipe.views += 1
         recipe.save(update_fields=['views'])
-        request.session[session_key] = True  # Mark as viewed in this session
-    
+
     context = {
         'recipe': recipe,
     }

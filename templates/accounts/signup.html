@@ -16,61 +16,56 @@
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
 
-                        <!-- Username -->
                         <div class="mb-4">
-                            <label for="username" class="form-label fw-bold">Username</label>
-                            <input type="text" name="username" id="username" class="form-control form-control-lg" required>
+                            <label class="form-label fw-bold">Username</label>
+                            <input type="text" name="username" class="form-control form-control-lg" required>
                         </div>
 
-                        <!-- Email -->
                         <div class="mb-4">
-                            <label for="email" class="form-label fw-bold">Email Address</label>
-                            <input type="email" name="email" id="email" class="form-control form-control-lg" required>
+                            <label class="form-label fw-bold">Email Address</label>
+                            <input type="email" name="email" class="form-control form-control-lg" required>
                         </div>
 
-                        <!-- Password -->
                         <div class="mb-4">
-                            <label for="password1" class="form-label fw-bold">Password</label>
-                            <input type="password" name="password1" id="password1" class="form-control form-control-lg" required>
+                            <label class="form-label fw-bold">Password</label>
+                            <input type="password" name="password1" class="form-control form-control-lg" required>
                         </div>
 
-                        <!-- Confirm Password -->
                         <div class="mb-4">
-                            <label for="password2" class="form-label fw-bold">Confirm Password</label>
-                            <input type="password" name="password2" id="password2" class="form-control form-control-lg" required>
+                            <label class="form-label fw-bold">Confirm Password</label>
+                            <input type="password" name="password2" class="form-control form-control-lg" required>
                         </div>
 
-                        <!-- Role Selection -->
                         <div class="mb-4">
-                            <label for="roleSelect" class="form-label fw-bold">I want to register as</label>
-                            <select name="role" class="form-select form-select-lg" id="roleSelect" onchange="toggleChefFields()" required>
+                            <label class="form-label fw-bold">I want to register as</label>
+                            <select name="role" class="form-select form-select-lg" id="roleSelect" onchange="toggleProfessionalFields()" required>
                                 <option value="visitor">Visitor</option>
                                 <option value="chef">Chef</option>
                                 <option value="nutritionist">Nutritionist</option>
                             </select>
                         </div>
 
-                        <!-- Chef-specific fields (hidden by default) -->
-                        <div id="chefFields" style="display:none;">
+                        <!-- Champs pour Chef et Nutritionniste -->
+                        <div id="professionalFields" style="display:none;">
                             <div class="alert alert-info">
-                                <strong>Note:</strong> Chef accounts require admin approval. You will receive an email when your account is activated.
+                                <strong>Important:</strong> Professional accounts (Chef & Nutritionist) require admin approval. You will receive an email when your account is activated.
                             </div>
 
                             <div class="mb-4">
-                                <label for="profile_picture" class="form-label fw-bold">Profile Picture</label>
-                                <input type="file" name="profile_picture" id="profile_picture" class="form-control form-control-lg" accept="image/*">
-                                <small class="text-muted">Recommended: clear photo of yourself</small>
+                                <label class="form-label fw-bold">Profile Picture</label>
+                                <input type="file" name="profile_picture" class="form-control form-control-lg" accept="image/*">
                             </div>
 
                             <div class="mb-4">
-                                <label for="certificate" class="form-label fw-bold">Culinary Certificate (PDF or Image)</label>
-                                <input type="file" name="certificate" id="certificate" class="form-control form-control-lg" accept=".pdf,image/*" required>
-                                <small class="text-muted">Required for verification by admin</small>
+                                <label class="form-label fw-bold">Diploma / Certificate (PDF or Image)</label>
+                                <input type="file" name="certificate" class="form-control form-control-lg" accept=".pdf,image/*" required>
+                                <small class="text-muted">Required for admin verification</small>
                             </div>
 
-                            <div class="mb-4">
-                                <label for="speciality" class="form-label fw-bold">Speciality</label>
-                                <select name="speciality" id="speciality" class="form-select form-select-lg" required>
+                            <!-- Speciality – only for chefs -->
+                            <div class="mb-4" id="specialityField">
+                                <label class="form-label fw-bold">Speciality</label>
+                                <select name="speciality" class="form-select form-select-lg">
                                     <option value="">-- Choose your speciality --</option>
                                     <option value="traditional">Traditional Tunisian</option>
                                     <option value="seafood">Seafood Specialist</option>
@@ -83,8 +78,8 @@
                             </div>
 
                             <div class="mb-4">
-                                <label for="region" class="form-label fw-bold">Region</label>
-                                <select name="region" id="region" class="form-select form-select-lg" required>
+                                <label class="form-label fw-bold">Region</label>
+                                <select name="region" class="form-select form-select-lg" required>
                                     <option value="">-- Select your region --</option>
                                     <option value="tunis">Tunis</option>
                                     <option value="ariana">Ariana</option>
@@ -98,25 +93,18 @@
                             </div>
 
                             <div class="mb-4">
-                                <label for="years_experience" class="form-label fw-bold">Years of Experience</label>
-                                <input type="number" name="years_experience" id="years_experience" class="form-control form-control-lg" min="0" max="60">
+                                <label class="form-label fw-bold">Years of Experience</label>
+                                <input type="number" name="years_experience" class="form-control form-control-lg" min="0">
                             </div>
 
                             <div class="mb-4">
-                                <label for="bio" class="form-label fw-bold">Short Bio</label>
-                                <textarea name="bio" id="bio" class="form-control" rows="5" placeholder="Tell us about your culinary journey, your passion, your favorite dishes..."></textarea>
+                                <label class="form-label fw-bold">Short Bio</label>
+                                <textarea name="bio" class="form-control" rows="5" placeholder="Tell us about your professional background..."></textarea>
                             </div>
                         </div>
 
-                        <!-- Submit Button -->
                         <div class="text-center mt-5">
-                            <button type="submit" class="btn btn-yellow btn-lg px-5 fw-bold shadow">
-                                Create Account
-                            </button>
-                        </div>
-
-                        <div class="text-center mt-3">
-                            <p class="text-muted">Already have an account? <a href="{% url 'accounts:login' %}" class="text-warning fw-bold">Login here</a></p>
+                            <button type="submit" class="btn btn-yellow btn-lg px-5 fw-bold shadow">Create Account</button>
                         </div>
                     </form>
                 </div>
@@ -126,28 +114,24 @@
 </div>
 
 <script>
-function toggleChefFields() {
+function toggleProfessionalFields() {
     const role = document.getElementById('roleSelect').value;
-    const chefFields = document.getElementById('chefFields');
-    
-    if (role === 'chef') {
-        chefFields.style.display = 'block';
-        // Make chef-specific fields required
-        document.querySelectorAll('#chefFields input, #chefFields select').forEach(el => {
-            if (el.name === 'certificate' || el.name === 'speciality' || el.name === 'region') {
-                el.required = true;
-            }
-        });
+    const fields = document.getElementById('professionalFields');
+    const specialityField = document.getElementById('specialityField');
+
+    if (role === 'chef' || role === 'nutritionist') {
+        fields.style.display = 'block';
+        // Speciality only for chefs
+        if (role === 'chef') {
+            specialityField.style.display = 'block';
+        } else {
+            specialityField.style.display = 'none';
+        }
     } else {
-        chefFields.style.display = 'none';
-        // Remove required when hidden
-        document.querySelectorAll('#chefFields input, #chefFields select').forEach(el => {
-            el.required = false;
-        });
+        fields.style.display = 'none';
     }
 }
 
-// Run on page load in case of validation error
-window.onload = toggleChefFields;
+window.onload = toggleProfessionalFields;
 </script>
 {% endblock %}

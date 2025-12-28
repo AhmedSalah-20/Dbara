@@ -5,7 +5,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
     <title>{% block title %}Dbara - Authentic Tunisian Recipes{% endblock %}</title>
+=======
+    <title>{% block title %}Dbara - Tunisian Recipes{% endblock %}</title>
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
     <link rel="icon" type="image/x-icon" href="{% static 'images/logo.png' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -31,7 +35,10 @@
         .recipe-img { height: 210px; object-fit: cover; }
         .chef-photo { width: 130px; height: 130px; object-fit: cover; border-radius: 50%; border: 5px solid #ffd700; }
         footer { background-color: #111; color: #aaa; padding: 30px 0; }
+<<<<<<< HEAD
         .hover-lift:hover { transform: translateY(-10px); transition: 0.3s; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+=======
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
     </style>
 </head>
 <body>
@@ -39,6 +46,7 @@
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg px-4">
         <a class="navbar-brand" href="{% url 'accounts:home' %}">Dbara</a>
+<<<<<<< HEAD
         <button class="navbar-toggler bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="Toggle navigation">
             Menu
         </button>
@@ -55,12 +63,29 @@
 
                 {% if user.is_authenticated %}
                     {% if user.is_staff or user.is_superuser %}
+=======
+        <button class="navbar-toggler bg-light" data-bs-toggle="collapse" data-bs-target="#menu">Menu</button>
+        <div class="collapse navbar-collapse" id="menu">
+            <form class="d-flex search-form mx-auto my-2 my-lg-0" action="{% url 'accounts:search_recipes' %}" method="GET">
+    <input type="search" name="q" class="search-input me-2 form-control" placeholder="Rechercher recettes, chefs..." aria-label="Search" required>
+    <button class="search-btn btn" type="submit">Go</button>
+</form> 
+
+            <ul class="navbar-nav ms-auto align-items-center">
+              <li class="nav-item"><a class="nav-link" href="{% url 'accounts:public_recipes' %}">Recipes</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'accounts:chefs_list' %}">Chefs</a></li>
+<li class="nav-item"><a class="nav-link" href="{% url 'accounts:nutritionists_list' %}">Nutritionists</a></li>
+
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                         <li class="nav-item">
                             <a class="nav-link btn btn-danger btn-sm mx-2 fw-bold" href="/admin/">Administrator ⚙️</a>
                         </li>
                     {% else %}
                         {% with profile=user.userprofile %}
                             {% if profile %}
+<<<<<<< HEAD
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle d-flex align-items-center text-white fw-bold" 
                                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -83,6 +108,34 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-white" href="{% url 'accounts:logout' %}">Logout</a>
                                 </li>
+=======
+                                {% if profile.role == 'chef' or profile.role == 'nutritionist' %}
+                                    <!-- Dropdown avec photo et nom -->
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle d-flex align-items-center text-white fw-bold" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            {% if profile.profile_picture %}
+                                                <img src="{{ profile.profile_picture.url }}" class="rounded-circle me-2" width="40" height="40" alt="{{ user.username }}">
+                                            {% else %}
+                                                <img src="{% static 'images/default-chef.jpg' %}" class="rounded-circle me-2" width="40" height="40" alt="{{ user.username }}">
+                                            {% endif %}
+                                            <span>{{ user.username }}</span>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end bg-dark border-0 shadow">
+                                            <li>
+                                                <a class="dropdown-item text-white" href="{% url 'accounts:edit_profile' %}">
+                                                    ✏️ Edit Profile
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider border-secondary"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                                                    🚪 Logout
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                {% endif %}
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                             {% endif %}
                         {% endwith %}
                     {% endif %}

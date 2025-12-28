@@ -1,5 +1,9 @@
 # accounts/views.py – VERSION FINALE CORRIGÉE & FONCTIONNELLE
+<<<<<<< HEAD
 from django.core.mail import send_mail
+=======
+
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -9,7 +13,11 @@ from django.db.models import Sum
 from django.db import transaction
 from django.conf import settings
 import google.generativeai as genai
+<<<<<<< HEAD
 from .models import UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite
+=======
+from .models import UserProfile, Recipe, RecipeImage
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
 from django.db import models
 
 # ====================== BASIC VIEWS ======================
@@ -65,12 +73,20 @@ def signup(request):
 
         with transaction.atomic():
             user = User.objects.create_user(username=username, email=email, password=password1)
+<<<<<<< HEAD
             profile = UserProfile.objects.create(user=user, role=role)
 
+=======
+
+            profile = UserProfile.objects.create(user=user, role=role)
+
+            # Pour Chef et Nutritionniste : compte désactivé jusqu'à approbation admin
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
             if role in ['chef', 'nutritionist']:
                 user.is_active = False
                 user.save()
 
+<<<<<<< HEAD
                 # Pro fields...
                 # (keep your existing code for chef/nutritionist here)
 
@@ -102,6 +118,34 @@ def signup(request):
 
                 messages.success(request, "Your account has been created! Please log in.")
                 return redirect('accounts:login')  # Redirection to login
+=======
+                # Champs communs aux pros
+                profile.region = request.POST.get('region', '')
+                profile.years_experience = request.POST.get('years_experience') or None
+                profile.bio = request.POST.get('bio', '')
+
+                if 'profile_picture' in request.FILES:
+                    profile.profile_picture = request.FILES['profile_picture']
+                if 'certificate' in request.FILES:
+                    profile.certificate = request.FILES['certificate']
+
+                # Speciality uniquement pour les chefs
+                if role == 'chef':
+                    profile.speciality = request.POST.get('speciality', '')
+
+                profile.save()
+
+                messages.success(request, 
+                    "Your nutritionist account has been created and is pending admin approval. "
+                    "You will receive an email when your account is activated.")
+                return redirect('accounts:login')
+
+            else:
+                # Visiteur : compte actif immédiatement
+                login(request, user)
+                messages.success(request, f"Welcome {username}! Your account is ready.")
+                return redirect('accounts:home')
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
 
     return render(request, 'accounts/signup.html')
 
@@ -118,6 +162,7 @@ def login_view(request):
             except User.DoesNotExist:
                 user = None
 
+<<<<<<< HEAD
         if user and user.is_active:
             login(request, user)
 
@@ -143,6 +188,28 @@ def login_view(request):
 
     return render(request, 'accounts/login.html')
 
+=======
+        if user:
+            login(request, user)
+            UserProfile.objects.get_or_create(user=user, defaults={'role': 'visitor'})
+
+            if user.is_staff:
+                return redirect('/admin/')
+            try:
+                if user.userprofile.role == 'chef':
+                    return redirect('accounts:chef_dashboard')
+                elif user.userprofile.role == 'nutritionist':
+                    return redirect('accounts:nutritionist_dashboard')
+            except UserProfile.DoesNotExist:
+                pass
+            return redirect('accounts:home')
+        else:
+            messages.error(request, "Identifiants incorrects")
+
+    return render(request, 'accounts/login.html')
+
+
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
 def logout_view(request):
     logout(request)
     messages.success(request, "Déconnexion réussie")
@@ -522,6 +589,7 @@ def chef_recipes(request, username):
         'chef_profile': profile,
         'recipes': recipes,
     }
+<<<<<<< HEAD
     return render(request, 'public/chef_recipes.html', context)
 
 
@@ -589,3 +657,6 @@ def chatbot(request):
         # ... (add your Gemini code here)
 
     return render(request, 'visitor/chatbot.html')
+=======
+    return render(request, 'public/chef_recipes.html', context)
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02

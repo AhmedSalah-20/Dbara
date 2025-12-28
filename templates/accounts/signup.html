@@ -13,6 +13,7 @@
                     <h2 class="mb-0 fw-bold">Create Your Dbara Account</h2>
                 </div>
                 <div class="card-body p-5">
+<<<<<<< HEAD
                     <!-- Messages Django -->
                     {% if messages %}
                         <div class="mb-4">
@@ -26,6 +27,9 @@
                     {% endif %}
 
                     <form method="POST" enctype="multipart/form-data" id="signupForm">
+=======
+                    <form method="POST" enctype="multipart/form-data">
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                         {% csrf_token %}
 
                         <div class="mb-4">
@@ -48,6 +52,7 @@
                             <input type="password" name="password2" class="form-control form-control-lg" required>
                         </div>
 
+<<<<<<< HEAD
                         <!-- Profile Picture – visible for ALL roles (optional) -->
                         <div class="mb-4">
                             <label class="form-label fw-bold">Profile Picture (optional)</label>
@@ -58,24 +63,50 @@
                         <div class="mb-4">
                             <label class="form-label fw-bold">I want to register as</label>
                             <select name="role" class="form-select form-select-lg" id="roleSelect" required>
+=======
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">I want to register as</label>
+                            <select name="role" class="form-select form-select-lg" id="roleSelect" onchange="toggleProfessionalFields()" required>
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                                 <option value="visitor">Visitor</option>
                                 <option value="chef">Chef</option>
                                 <option value="nutritionist">Nutritionist</option>
                             </select>
                         </div>
 
+<<<<<<< HEAD
                         <!-- Professional fields -->
                         <div id="professionalFields" style="display:none;">
                             <div class="alert alert-info mb-4">
                                 <strong>Important:</strong> Professional accounts require admin approval.
+=======
+                        <!-- Champs pour Chef et Nutritionniste -->
+                        <div id="professionalFields" style="display:none;">
+                            <div class="alert alert-info">
+                                <strong>Important:</strong> Professional accounts (Chef & Nutritionist) require admin approval. You will receive an email when your account is activated.
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Profile Picture</label>
+                                <input type="file" name="profile_picture" class="form-control form-control-lg" accept="image/*">
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                             </div>
 
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Diploma / Certificate (PDF or Image)</label>
+<<<<<<< HEAD
                                 <input type="file" name="certificate" class="form-control form-control-lg" accept=".pdf,image/*">
                             </div>
 
                             <div class="mb-4" id="specialityField" style="display:none;">
+=======
+                                <input type="file" name="certificate" class="form-control form-control-lg" accept=".pdf,image/*" required>
+                                <small class="text-muted">Required for admin verification</small>
+                            </div>
+
+                            <!-- Speciality – only for chefs -->
+                            <div class="mb-4" id="specialityField">
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                                 <label class="form-label fw-bold">Speciality</label>
                                 <select name="speciality" class="form-select form-select-lg">
                                     <option value="">-- Choose your speciality --</option>
@@ -91,7 +122,11 @@
 
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Region</label>
+<<<<<<< HEAD
                                 <select name="region" class="form-select form-select-lg">
+=======
+                                <select name="region" class="form-select form-select-lg" required>
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                                     <option value="">-- Select your region --</option>
                                     <option value="tunis">Tunis</option>
                                     <option value="ariana">Ariana</option>
@@ -111,11 +146,16 @@
 
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Short Bio</label>
+<<<<<<< HEAD
                                 <textarea name="bio" class="form-control" rows="5"></textarea>
+=======
+                                <textarea name="bio" class="form-control" rows="5" placeholder="Tell us about your professional background..."></textarea>
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                             </div>
                         </div>
 
                         <div class="text-center mt-5">
+<<<<<<< HEAD
                             <button type="submit" class="btn btn-yellow btn-lg px-5 fw-bold shadow">
                                 Create Account
                             </button>
@@ -123,6 +163,9 @@
 
                         <div class="text-center mt-3">
                             <p class="text-muted">Already have an account? <a href="{% url 'accounts:login' %}" class="text-warning fw-bold">Login here</a></p>
+=======
+                            <button type="submit" class="btn btn-yellow btn-lg px-5 fw-bold shadow">Create Account</button>
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                         </div>
                     </form>
                 </div>
@@ -131,6 +174,7 @@
     </div>
 </div>
 
+<<<<<<< HEAD
 <!-- JavaScript safe – no onload conflict -->
 <script>
     const roleSelect = document.getElementById('roleSelect');
@@ -155,5 +199,27 @@
 
     // Initial call
     toggleProfessionalFields();
+=======
+<script>
+function toggleProfessionalFields() {
+    const role = document.getElementById('roleSelect').value;
+    const fields = document.getElementById('professionalFields');
+    const specialityField = document.getElementById('specialityField');
+
+    if (role === 'chef' || role === 'nutritionist') {
+        fields.style.display = 'block';
+        // Speciality only for chefs
+        if (role === 'chef') {
+            specialityField.style.display = 'block';
+        } else {
+            specialityField.style.display = 'none';
+        }
+    } else {
+        fields.style.display = 'none';
+    }
+}
+
+window.onload = toggleProfessionalFields;
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
 </script>
 {% endblock %}

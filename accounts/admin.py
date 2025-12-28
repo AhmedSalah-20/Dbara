@@ -2,9 +2,14 @@
 from django.contrib import admin
 from django.core.mail import send_mail
 from django.conf import settings
+<<<<<<< HEAD
 
 from .models import UserProfile, Recipe, RecipeImage
 print(admin.site.is_registered(UserProfile))  # Should print True
+=======
+from .models import UserProfile, Recipe, RecipeImage
+
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
 
 # Action personnalisée pour approuver Chefs ET Nutritionnistes
 def approve_professionals(modeladmin, request, queryset):
@@ -42,6 +47,7 @@ def approve_professionals(modeladmin, request, queryset):
 approve_professionals.short_description = "Approve selected profile and send confirmation email"
 
 
+<<<<<<< HEAD
 # Admin pour UserProfile@admin.register(UserProfile)
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
@@ -54,6 +60,15 @@ class UserProfileAdmin(admin.ModelAdmin):
             return "Administrator"
         return obj.role or "-"
     get_role.short_description = "Role"
+=======
+# Admin pour UserProfile
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'role', 'speciality', 'region', 'years_experience', 'user__is_active')
+    list_filter = ('role', 'region', 'speciality')
+    search_fields = ('user__username', 'user__email')
+    actions = [approve_professionals]  # Action pour chefs ET nutritionnistes
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
 
 
 # Admin pour Recipe
@@ -74,5 +89,9 @@ class RecipeAdmin(admin.ModelAdmin):
 @admin.register(RecipeImage)
 class RecipeImageAdmin(admin.ModelAdmin):
     list_display = ('recipe', 'image')
+<<<<<<< HEAD
     search_fields = ('recipe__title',)
 
+=======
+    search_fields = ('recipe__title',)
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02

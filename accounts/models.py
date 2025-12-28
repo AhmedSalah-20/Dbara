@@ -75,6 +75,7 @@ class RecipeImage(models.Model):
     image = models.ImageField(upload_to='recipes/')
 
     def __str__(self):
+<<<<<<< HEAD
         return f"Image for {self.recipe.title}"
     
     # NEW: Comment on recipe
@@ -118,3 +119,6 @@ class Favorite(models.Model):
 
 
     
+=======
+        return f"Image for {self.recipe.title}"
+>>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02

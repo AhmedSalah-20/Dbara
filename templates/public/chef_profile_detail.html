@@ -1,0 +1,96 @@
+<!-- templates/public/chef_profile_detail.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ chef_profile.user.username }} - Chef Profile - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <!-- Header with big photo -->
+                <div class="text-center bg-black py-5">
+                    {% if chef_profile.profile_picture %}
+                        <img src="{{ chef_profile.profile_picture.url }}" class="rounded-circle border border-warning border-5 shadow-lg" width="220" height="220" alt="{{ chef_profile.user.username }}">
+                    {% else %}
+                        <img src="{% static 'images/default-chef.jpg' %}" class="rounded-circle border border-warning border-5 shadow-lg" width="220" height="220" alt="{{ chef_profile.user.username }}">
+                    {% endif %}
+                    <h1 class="display-4 fw-bold text-warning mt-4">{{ chef_profile.user.username }}</h1>
+                    <p class="lead text-white">Tunisian Chef Expert 🔥</p>
+                </div>
+
+                <div class="card-body p-5">
+                    <div class="row text-center mb-5">
+                        <div class="col-md-4">
+                            <h4 class="fw-bold text-warning">{{ recipe_count }}</h4>
+                            <p class="text-muted">Recipe{{ recipe_count|pluralize }} Published</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h4 class="fw-bold text-primary">{{ chef_profile.years_experience|default:"?" }}</h4>
+                            <p class="text-muted">Years of Experience</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h4 class="fw-bold text-success">{{ chef_profile.get_region_display }}</h4>
+                            <p class="text-muted">Region</p>
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary">
+
+                    <!-- Speciality Badge -->
+                    <div class="text-center mb-4">
+                        <span class="badge bg-warning text-dark fs-5 px-4 py-2 rounded-pill">
+                            {{ chef_profile.get_speciality_display }}
+                        </span>
+                    </div>
+
+                    <!-- Bio -->
+                    {% if chef_profile.bio %}
+                        <h4 class="fw-bold mb-3 text-center">About Me</h4>
+                        <p class="lead text-center text-muted px-4">{{ chef_profile.bio|linebreaks }}</p>
+                    {% else %}
+                        <p class="text-center text-muted fst-italic">No bio yet...</p>
+                    {% endif %}
+
+                    <!-- Recipes by this chef -->
+                    <h3 class="text-center fw-bold mt-5 mb-4" style="color:#ffd700;">
+                        Recipes by {{ chef_profile.user.username }}
+                    </h3>
+
+                    {% if recipes %}
+                        <div class="row g-4">
+                            {% for recipe in recipes %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card shadow h-100 border-0">
+                                    {% if recipe.images.first %}
+                                        <img src="{{ recipe.images.first.image.url }}" class="card-img-top" style="height:230px; object-fit:cover;" alt="{{ recipe.title }}">
+                                    {% else %}
+                                        <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:230px; object-fit:cover;" alt="{{ recipe.title }}">
+                                    {% endif %}
+                                    <div class="card-body bg-dark text-white text-center">
+                                        <h5 class="card-title fw-bold">{{ recipe.title }}</h5>
+                                        <p class="small text-warning">{{ recipe.views }} view{{ recipe.views|pluralize }}</p>
+                                        <a href="{% url 'accounts:recipe_detail' recipe.pk %}" class="btn btn-outline-warning btn-sm">View Recipe</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <p class="lead text-muted">This chef hasn't published any recipes yet.</p>
+                        </div>
+                    {% endif %}
+
+                    <div class="text-center mt-5">
+                        <a href="{% url 'accounts:chefs_list' %}" class="btn btn-secondary btn-lg">
+                            ← Back to All Chefs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

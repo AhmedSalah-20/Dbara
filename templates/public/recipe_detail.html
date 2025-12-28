@@ -1,0 +1,214 @@
+<!-- templates/public/recipe_detail.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ recipe.title }} - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Images Carousel -->
+        <div class="col-lg-8 mb-5">
+            <div id="recipeCarousel" class="carousel slide shadow-lg rounded-3" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    {% for image in recipe.images.all %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{{ image.image.url }}" class="d-block w-100" style="max-height:600px; object-fit:cover;" alt="{{ recipe.title }}">
+                    </div>
+                    {% empty %}
+                    <div class="carousel-item active">
+                        <img src="{% static 'images/default-recipe.jpg' %}" class="d-block w-100" style="max-height:600px; object-fit:cover;" alt="{{ recipe.title }}">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if recipe.images.all|length > 1 %}
+                <button class="carousel-control-prev" type="button" data-bs-target="#recipeCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#recipeCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recipe Info Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow-lg border-0 sticky-top" style="top: 20px;">
+                <div class="card-body">
+                    <h1 class="display-6 fw-bold text-warning mb-3">{{ recipe.title }}</h1>
+                    <p class="text-muted mb-4">
+                        By <strong>Chef {{ recipe.author.username }}</strong> • {{ recipe.views }} view{{ recipe.views|pluralize }}
+                    </p>
+
+                    <div class="row text-center mb-4 g-3">
+                        <div class="col-4">
+                            <h5 class="fw-bold">{{ recipe.prep_time }} min</h5>
+                            <small class="text-muted">Prep Time</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="fw-bold">{{ recipe.cook_time }} min</h5>
+                            <small class="text-muted">Cook Time</small>
+                        </div>
+                        <div class="col-4">
+                            <h5 class="fw-bold">{{ recipe.servings }}</h5>
+                            <small class="text-muted">Serving{{ recipe.servings|pluralize }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Favorite Button -->
+                    {% if user.is_authenticated %}
+                    <form method="POST" action="{% url 'accounts:toggle_favorite' recipe.pk %}" class="text-center mb-4">
+                        {% csrf_token %}
+                        <button type="submit" class="btn {% if recipe in user.favorites.all %}btn-danger{% else %}btn-success{% endif %} btn-lg w-100">
+                            {% if recipe in user.favorites.all %}
+                                ❤️ Remove from Favorites
+                            {% else %}
+                                🤍 Add to Favorites
+                            {% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <a href="{% url 'accounts:public_recipes' %}" class="btn btn-secondary btn-lg w-100">
+                        ← Back to Recipes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Description -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-dark text-warning">
+                    <h4 class="mb-0">Description</h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ recipe.description|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ingredients & Steps -->
+    <div class="row mt-5">
+        <div class="col-lg-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0 fw-bold">Ingredients</h4>
+                </div>
+                <div class="card-body">
+                    {% if recipe.ingredients %}
+                        <ul class="list-group list-group-flush">
+                            {% for line in recipe.ingredients.splitlines %}
+                                {% if line.strip %}
+                                <li class="list-group-item">{{ line.strip }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No ingredients listed yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0 fw-bold">Steps</h4>
+                </div>
+                <div class="card-body">
+                    {% if recipe.steps %}
+                        <ol class="list-group list-group-flush list-group-numbered">
+                            {% for line in recipe.steps.splitlines %}
+                                {% if line.strip %}
+                                <li class="list-group-item">{{ line.strip }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ol>
+                    {% else %}
+                        <p class="text-muted">No steps listed yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Rate this Recipe</h4>
+                </div>
+                <div class="card-body">
+                    {% if user.is_authenticated %}
+                        <form method="POST" action="{% url 'accounts:add_rating' recipe.pk %}">
+                            {% csrf_token %}
+                            <div class="d-flex align-items-center">
+                                <select name="score" class="form-select me-3" style="width: auto;" required>
+                                    <option value="">-- Choose rating --</option>
+                                    <option value="1">1 ★</option>
+                                    <option value="2">2 ★★</option>
+                                    <option value="3">3 ★★★</option>
+                                    <option value="4">4 ★★★★</option>
+                                    <option value="5">5 ★★★★★</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary">Submit Rating</button>
+                            </div>
+                        </form>
+
+                        {% if recipe.ratings.exists %}
+                            <p class="mt-4">
+                                Average rating: <strong>{{ recipe.ratings.aggregate(avg=models.Avg('score'))['avg']|floatformat:1 }} / 5</strong>
+                                ({{ recipe.ratings.count }} rating{{ recipe.ratings.count|pluralize }})
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted">Please <a href="{% url 'accounts:login' %}">login</a> to rate this recipe.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-lg">
+                <div class="card-header bg-dark text-warning">
+                    <h4 class="mb-0">Comments ({{ recipe.comments.count }})</h4>
+                </div>
+                <div class="card-body">
+                    {% if recipe.comments.exists %}
+                        {% for comment in recipe.comments.all %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <strong>{{ comment.author.username }}</strong> 
+                            <small class="text-muted">– {{ comment.created_at|date:"d M Y" }}</small>
+                            <p class="mt-2">{{ comment.content|linebreaks }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">No comments yet. Be the first!</p>
+                    {% endif %}
+
+                    {% if user.is_authenticated %}
+                        <form method="POST" action="{% url 'accounts:add_comment' recipe.pk %}" class="mt-4">
+                            {% csrf_token %}
+                            <textarea name="content" class="form-control" rows="4" placeholder="Write your comment..." required></textarea>
+                            <button type="submit" class="btn btn-warning mt-3">Post Comment</button>
+                        </form>
+                    {% else %}
+                        <p class="mt-4 text-muted">Please <a href="{% url 'accounts:login' %}">login</a> to comment.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

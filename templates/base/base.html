@@ -1,0 +1,110 @@
+<!-- templates/base/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dbara - Authentic Tunisian Recipes{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo.png' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { background-color: #f7f7f7; font-family: "Poppins", sans-serif; }
+        .navbar { background-color: black !important; }
+        .navbar-brand { color: #fdd835 !important; font-size: 1.9rem; font-weight: bold; }
+        .nav-link { color: white !important; margin-right: 20px; font-weight: 500; }
+        .nav-link:hover { color: #ffd700 !important; }
+        .search-input { border-radius: 20px; border: none; padding: 8px 15px; }
+        .search-btn { background-color: #ffd700; border: none; border-radius: 20px; padding: 8px 15px; color: black; font-weight: 500; }
+        .btn-yellow { background-color: #ffd700; color: black; font-weight: bold; border: none; padding: 12px 30px; border-radius: 50px; }
+        .btn-yellow:hover { background-color: #e6c200; }
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.78), rgba(0,0,0,0.78)), url('{% static "images/background.png" %}') center/cover no-repeat;
+            color: white; text-align: center; padding: 100px 20px; border-radius: 20px; margin: 40px auto; max-width: 1000px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+        .hero h1 { font-size: 3.2rem; font-weight: 900; color: #ffd700; }
+        .recipe-card, .chef-card { border-radius: 18px; overflow: hidden; background: white; box-shadow: 0 6px 18px rgba(0,0,0,0.1); transition: 0.3s; }
+        .recipe-card:hover, .chef-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
+        .recipe-img { height: 210px; object-fit: cover; }
+        .chef-photo { width: 130px; height: 130px; object-fit: cover; border-radius: 50%; border: 5px solid #ffd700; }
+        footer { background-color: #111; color: #aaa; padding: 30px 0; }
+        .hover-lift:hover { transform: translateY(-10px); transition: 0.3s; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg px-4">
+        <a class="navbar-brand" href="{% url 'accounts:home' %}">Dbara</a>
+        <button class="navbar-toggler bg-light" type="button" data-bs-toggle="collapse" data-bs-target="#menu" aria-controls="menu" aria-expanded="false" aria-label="Toggle navigation">
+            Menu
+        </button>
+        <div class="collapse navbar-collapse" id="menu">
+            <form class="d-flex search-form mx-auto my-2 my-lg-0" action="{% url 'accounts:search_recipes' %}" method="GET">
+                <input type="search" name="q" class="search-input me-2 form-control" placeholder="Search recipes, chefs..." aria-label="Search" required>
+                <button class="search-btn btn" type="submit">Go</button>
+            </form>
+
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item"><a class="nav-link" href="{% url 'accounts:public_recipes' %}">Recipes</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'accounts:chefs_list' %}">Chefs</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'accounts:nutritionists_list' %}">Nutritionists</a></li>
+
+                {% if user.is_authenticated %}
+                    {% if user.is_staff or user.is_superuser %}
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-danger btn-sm mx-2 fw-bold" href="/admin/">Administrator ⚙️</a>
+                        </li>
+                    {% else %}
+                        {% with profile=user.userprofile %}
+                            {% if profile %}
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle d-flex align-items-center text-white fw-bold" 
+                                       href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        {% if profile.profile_picture %}
+                                            <img src="{{ profile.profile_picture.url }}" class="rounded-circle me-2" width="40" height="40" alt="{{ user.username }}">
+                                        {% else %}
+                                            <img src="{% static 'images/default-visitor.jpg' %}" class="rounded-circle me-2" width="40" height="40" alt="{{ user.username }}">
+                                        {% endif %}
+                                        <span>{{ user.username }}</span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end bg-dark border-0 shadow">
+                                        <li><a class="dropdown-item text-white" href="{% url 'accounts:edit_profile' %}">✏️ Edit Profile</a></li>
+
+
+                                        <li><hr class="dropdown-divider border-secondary"></li>
+                                        <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">🚪 Logout</a></li>
+                                    </ul>
+                                </li>
+                            {% else %}
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{% url 'accounts:logout' %}">Logout</a>
+                                </li>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'accounts:login' %}">Login</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-yellow px-4" href="{% url 'accounts:signup' %}">Join Us</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% include 'includes/messages.html' %}
+
+    <!-- Main Content -->
+    {% block content %}{% endblock %}
+
+    <!-- Footer -->
+    <footer class="text-center mt-5">
+        <p>&copy; 2025 Dbara – Made with passion in Tunisia 🇹🇳</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

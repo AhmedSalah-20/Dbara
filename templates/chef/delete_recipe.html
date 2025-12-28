@@ -1,0 +1,13 @@
+<!-- templates/chef/delete_recipe.html -->
+{% extends 'base/base.html' %}
+{% block content %}
+<div class="container py-5 text-center">
+    <h1 class="text-danger">Delete "{{ recipe.title }}"?</h1>
+    <p>This action cannot be undone.</p>
+    <form method="POST" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-lg">Yes, Delete Forever</button>
+    </form>
+    <a href="{% url 'accounts:chef_dashboard' %}" class="btn btn-secondary btn-lg">No, Keep It</a>
+</div>
+{% endblock %}

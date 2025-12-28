@@ -1,0 +1,26 @@
+{% extends 'base/base.html' %}
+
+{% block title %}My Favorites{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center fw-bold mb-5">My Favorite Recipes</h1>
+    {% if favorites %}
+        <div class="row g-4">
+            {% for fav in favorites %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow">
+                    <img src="{{ fav.recipe.images.first.image.url|default:'/static/images/default-recipe.jpg' }}" class="card-img-top" style="height:230px; object-fit:cover;">
+                    <div class="card-body">
+                        <h5>{{ fav.recipe.title }}</h5>
+                        <a href="{% url 'accounts:recipe_detail' fav.recipe.pk %}" class="btn btn-warning btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-center lead text-muted">No favorites yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

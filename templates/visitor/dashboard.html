@@ -1,0 +1,55 @@
+<!-- templates/visitor/dashboard.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}My Dashboard - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-black text-warning text-center">
+                    <h5 class="mb-0 fw-bold">My Menu</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'accounts:visitor_dashboard' %}" class="list-group-item active">My Dashboard</a>
+                    <a href="{% url 'accounts:favorites' %}" class="list-group-item">My Favorites</a>
+                    <a href="{% url 'accounts:chatbot' %}" class="list-group-item">Chat with Gemini</a>
+                    <a href="{% url 'accounts:edit_profile' %}" class="list-group-item">Edit Profile</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <h2 class="fw-bold mb-4">Welcome, {{ user.username }}!</h2>
+            <p class="lead">Your personal space to manage favorites and more.</p>
+
+            <h3 class="fw-bold mt-5 mb-3">My Favorites</h3>
+            {% if favorites %}
+                <div class="row g-4">
+                    {% for fav in favorites %}
+                    <div class="col-md-6">
+                        <div class="card shadow">
+                            {% if fav.recipe.images.first %}
+                                <img src="{{ fav.recipe.images.first.image.url }}" class="card-img-top" style="height:200px; object-fit:cover;">
+                            {% else %}
+                                <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:200px; object-fit:cover;">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5>{{ fav.recipe.title }}</h5>
+                                <a href="{% url 'accounts:recipe_detail' fav.recipe.pk %}" class="btn btn-warning btn-sm">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">No favorites yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

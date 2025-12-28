@@ -1,0 +1,77 @@
+<!-- templates/base/home.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Dbara - Authentic Tunisian Recipes{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Join Us on Dbara</h1>
+    <p class="lead fs-3 mb-4">Chefs • Visitors • Nutritionists<br>Welcome to the best Tunisian food community</p>
+    <a href="{% url 'accounts:signup' %}" class="btn btn-yellow px-5 py-3 fs-4">Join Us Now</a>
+</div>
+
+<div class="container my-5">
+    <!-- Popular Recipes -->
+    <h3 class="text-center fw-bold mb-5">Popular Recipes</h3>
+    <div class="row g-4">
+        {% for recipe in popular_recipes %}
+        <div class="col-md-4">
+            <div class="recipe-card hover-lift">
+                {% if recipe.images.first %}
+                    <img src="{{ recipe.images.first.image.url }}" class="recipe-img w-100" alt="{{ recipe.title }}">
+                {% else %}
+                    <img src="{% static 'images/default-recipe.jpg' %}" class="recipe-img w-100" alt="Default recipe">
+                {% endif %}
+                <div class="p-4 text-center">
+                    <h5 class="fw-bold">{{ recipe.title }}</h5>
+                    <small class="text-muted">By Chef {{ recipe.author.username }}</small>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <p class="lead text-muted">No recipes published yet...</p>
+            {% if recipe.pk %}
+    <a href="{% url 'accounts:recipe_detail' recipe.pk %}" class="btn btn-outline-warning btn-sm">View Recipe</a>
+{% else %}
+    <span class="btn btn-outline-secondary btn-sm disabled">View Recipe</span>
+{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Star Chefs -->
+    <h3 class="text-center fw-bold mt-5 mb-4">Our Star Chefs</h3>
+    <div class="row g-4 justify-content-center">
+        {% for profile in recent_chefs %}
+        <div class="col-md-4 text-center">
+            <div class="chef-card p-4 hover-lift">
+                <img src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}{% static 'images/default-chef.jpg' %}{% endif %}" 
+                     class="chef-photo mb-3" alt="{{ profile.user.username }}">
+                <h5 class="fw-bold">{{ profile.user.username }}</h5>
+                <p class="text-muted small">
+                    {{ profile.recipe_count }} recipe{{ profile.recipe_count|pluralize }} published
+                </p>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <p class="lead text-muted">No chefs registered yet...</p>
+            <a href="{% url 'accounts:chefs_list' %}" class="btn btn-success btn-lg">Discover Chefs</a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Central buttons -->
+   
+</div>
+
+<style>
+    .hover-lift:hover {
+        transform: translateY(-10px);
+        transition: 0.3s;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
+</style>
+{% endblock %}

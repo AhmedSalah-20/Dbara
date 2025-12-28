@@ -1,0 +1,90 @@
+<!-- templates/public/search_results.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Recherche : {{ query }} - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="text-center display-4 fw-bold mb-5" style="color:#ffd700;">
+        Résultats pour "{{ query }}"
+    </h1>
+
+    {% if has_results %}
+        <!-- Section Recettes -->
+        {% if recipes %}
+            <h3 class="text-center fw-bold mb-4 text-warning">Recettes trouvées ({{ recipes.count }})</h3>
+            <div class="row g-4 mb-5">
+                {% for recipe in recipes %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow h-100 border-0">
+                        {% if recipe.images.first %}
+                            <img src="{{ recipe.images.first.image.url }}" class="card-img-top" style="height:230px; object-fit:cover;" alt="{{ recipe.title }}">
+                        {% else %}
+                            <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:230px; object-fit:cover;" alt="Recette">
+                        {% endif %}
+                        <div class="card-body bg-dark text-white">
+                            <h5 class="card-title fw-bold">{{ recipe.title }}</h5>
+                            <p class="small text-warning">Par Chef {{ recipe.author.username }} • {{ recipe.views }} vues</p>
+                            {% if recipe.pk %}
+    <a href="{% url 'accounts:recipe_detail' recipe.pk %}" class="btn btn-outline-warning btn-sm">View Recipe</a>
+{% else %}
+    <span class="btn btn-outline-secondary btn-sm disabled">View Recipe</span>
+{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Section Chefs -->
+        {% if chefs %}
+            <h3 class="text-center fw-bold mb-4 text-success">Chefs trouvés ({{ chefs.count }})</h3>
+            <div class="row g-4 mb-5 justify-content-center">
+                {% for profile in chefs %}
+                <div class="col-md-6 col-lg-4 text-center">
+                    <div class="card shadow-lg h-100 border-0">
+                        <div class="pt-4">
+                            <img src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}{% static 'images/default-chef.jpg' %}{% endif %}" 
+                                 class="rounded-circle border border-warning border-4" width="120" height="120" alt="{{ profile.user.username }}">
+                        </div>
+                        <div class="card-body">
+                            <h5 class="fw-bold">{{ profile.user.username }}</h5>
+                            <p class="text-muted small">{{ profile.recipe_count }} recette{{ profile.recipe_count|pluralize }} publiée{{ profile.recipe_count|pluralize:"s" }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Section Nutritionnistes -->
+        {% if nutritionists %}
+            <h3 class="text-center fw-bold mb-4 text-info">Nutritionnistes trouvés ({{ nutritionists.count }})</h3>
+            <div class="row g-4 mb-5 justify-content-center">
+                {% for profile in nutritionists %}
+                <div class="col-md-6 col-lg-4 text-center">
+                    <div class="card shadow-lg h-100 border-0">
+                        <div class="pt-4">
+                            <img src="{% if profile.profile_picture %}{{ profile.profile_picture.url }}{% else %}{% static 'images/default-nutritionist.jpg' %}{% endif %}" 
+                                 class="rounded-circle border border-info border-4" width="120" height="120" alt="{{ profile.user.username }}">
+                        </div>
+                        <div class="card-body">
+                            <h5 class="fw-bold">Dr. {{ profile.user.username }}</h5>
+                            <a href="{% url 'accounts:nutritionist_chatbot' %}" class="btn btn-info btn-sm text-white">Poser une question</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    {% else %}
+        <div class="text-center py-5">
+            <p class="lead text-muted">Aucun résultat trouvé pour "{{ query }}"</p>
+            <a href="{% url 'accounts:home' %}" class="btn btn-warning btn-lg">Retour à l'accueil</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

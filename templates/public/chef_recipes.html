@@ -1,0 +1,44 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Recipes by {{ chef_profile.user.username }} - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold" style="color:#ffd700;">
+            Recipes by Chef {{ chef_profile.user.username }}
+        </h1>
+        <p class="lead">{{ recipes.count }} recipe{{ recipes.count|pluralize }} published</p>
+    </div>
+
+    {% if recipes %}
+        <div class="row g-4">
+            {% for recipe in recipes %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow h-100 border-0">
+                    {% if recipe.images.first %}
+                        <img src="{{ recipe.images.first.image.url }}" class="card-img-top" style="height:230px; object-fit:cover;" alt="{{ recipe.title }}">
+                    {% else %}
+                        <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:230px; object-fit:cover;" alt="{{ recipe.title }}">
+                    {% endif %}
+                    <div class="card-body bg-dark text-white">
+                        <h5 class="card-title fw-bold">{{ recipe.title }}</h5>
+                        <p class="small text-warning">{{ recipe.views }} view{{ recipe.views|pluralize }}</p>
+                       {% if recipe.pk %}
+    <a href="{% url 'accounts:recipe_detail' recipe.pk %}" class="btn btn-outline-warning btn-sm">View Recipe</a>
+{% else %}
+    <span class="btn btn-outline-secondary btn-sm disabled">View Recipe</span>
+{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <p class="lead text-muted">This chef hasn't published any recipes yet...</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

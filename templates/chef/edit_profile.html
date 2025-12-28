@@ -1,0 +1,114 @@
+<!-- templates/chef/edit_profile.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-black text-warning text-center py-4">
+                    <h2 class="mb-0 fw-bold">Edit My Profile</h2>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="text-center mb-5">
+                            {% if profile.profile_picture %}
+                                <img src="{{ profile.profile_picture.url }}" class="rounded-circle border border-warning border-5" width="150" height="150" alt="Profile Picture">
+                            {% else %}
+                                <img src="{% static 'images/default-chef.jpg' %}" class="rounded-circle border border-warning border-5" width="150" height="150" alt="Default Profile">
+                            {% endif %}
+                        </div>
+
+                        <!-- Profile Picture -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Profile Picture</label>
+                            <input type="file" name="profile_picture" class="form-control form-control-lg" accept="image/*">
+                            <small class="text-muted">Leave empty to keep current picture</small>
+                        </div>
+
+                        <!-- Certificate -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Diploma / Certificate (PDF or Image)</label>
+                            <input type="file" name="certificate" class="form-control form-control-lg" accept=".pdf,image/*">
+                            <small class="text-muted">Leave empty to keep current certificate</small>
+                        </div>
+
+                        <!-- Username -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Username</label>
+                            <input type="text" name="username" value="{{ user.username }}" class="form-control form-control-lg" required>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Email Address</label>
+                            <input type="email" name="email" value="{{ user.email }}" class="form-control form-control-lg" required>
+                        </div>
+
+                        <!-- New Password (optional) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">New Password (leave blank to keep current)</label>
+                            <input type="password" name="password" class="form-control form-control-lg" placeholder="Enter new password">
+                        </div>
+
+                        <!-- Speciality – ONLY for chefs -->
+                        {% if profile.role == 'chef' %}
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Speciality</label>
+                            <select name="speciality" class="form-select form-select-lg" required>
+                                <option value="">-- Choose your speciality --</option>
+                                <option value="traditional" {% if profile.speciality == 'traditional' %}selected{% endif %}>Traditional Tunisian</option>
+                                <option value="seafood" {% if profile.speciality == 'seafood' %}selected{% endif %}>Seafood Specialist</option>
+                                <option value="pastry" {% if profile.speciality == 'pastry' %}selected{% endif %}>Pastry & Desserts</option>
+                                <option value="grill" {% if profile.speciality == 'grill' %}selected{% endif %}>Grill & BBQ</option>
+                                <option value="vegetarian" {% if profile.speciality == 'vegetarian' %}selected{% endif %}>Vegetarian & Healthy</option>
+                                <option value="fusion" {% if profile.speciality == 'fusion' %}selected{% endif %}>Modern Fusion</option>
+                                <option value="other" {% if profile.speciality == 'other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        {% endif %}
+
+                        <!-- Region -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Region</label>
+                            <select name="region" class="form-select form-select-lg">
+                                <option value="">-- Select your region --</option>
+                                <option value="tunis" {% if profile.region == 'tunis' %}selected{% endif %}>Tunis</option>
+                                <option value="ariana" {% if profile.region == 'ariana' %}selected{% endif %}>Ariana</option>
+                                <option value="sfax" {% if profile.region == 'sfax' %}selected{% endif %}>Sfax</option>
+                                <option value="sousse" {% if profile.region == 'sousse' %}selected{% endif %}>Sousse</option>
+                                <option value="monastir" {% if profile.region == 'monastir' %}selected{% endif %}>Monastir</option>
+                                <option value="bizerte" {% if profile.region == 'bizerte' %}selected{% endif %}>Bizerte</option>
+                                <option value="nabeul" {% if profile.region == 'nabeul' %}selected{% endif %}>Nabeul</option>
+                                <option value="other" {% if profile.region == 'other' %}selected{% endif %}>Other Region</option>
+                            </select>
+                        </div>
+
+                        <!-- Years of Experience -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Years of Experience</label>
+                            <input type="number" name="years_experience" value="{{ profile.years_experience }}" class="form-control form-control-lg" min="0" max="60">
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Bio</label>
+                            <textarea name="bio" class="form-control" rows="6">{{ profile.bio }}</textarea>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-warning btn-lg px-5 fw-bold shadow">Save Changes</button>
+                            <a href="{% url 'accounts:chef_dashboard' %}" class="btn btn-secondary btn-lg px-5 ms-3">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

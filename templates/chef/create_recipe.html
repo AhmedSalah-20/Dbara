@@ -1,4 +1,4 @@
-<!-- templates/chef/create_recipe.html  (used for both create and edit) -->
+<!-- templates/chef/create_recipe.html (used for both create and edit) -->
 {% extends 'base/base.html' %}
 {% load static %}
 
@@ -8,57 +8,92 @@
 
 {% block content %}
 <div class="container py-5">
-    <h1 class="text-center display-4 fw-bold mb-5" style="color:#ffd700;">
-        {% if recipe %}Edit Recipe{% else %}Create New Recipe{% endif %}
-    </h1>
-
-    <div class="col-md-8 mx-auto">
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="mb-4">
-                <label class="form-label fw-bold">Title</label>
-                <input type="text" name="title" class="form-control form-control-lg" 
-                       value="{{ recipe.title|default:'' }}" required>
-            </div>
-
-            <div class="mb-4">
-                <label class="form-label fw-bold">Description</label>
-                <textarea name="description" class="form-control" rows="8" required>{{ recipe.description|default:'' }}</textarea>
-            </div>
-
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Prep Time (min)</label>
-                    <input type="number" name="prep_time" class="form-control" 
-                           value="{{ recipe.prep_time|default:'' }}" required>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-black text-warning text-center py-4">
+                    <h2 class="mb-0 fw-bold">
+                        {% if recipe %}Edit Recipe{% else %}Create New Recipe{% endif %}
+                    </h2>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold">Cook Time (min)</label>
-                    <input type="number" name="cook_time" class="form-control" 
-                           value="{{ recipe.cook_time|default:'' }}" required>
-                </div>
-                <div class="col-md-4">
-                    <label bicarbonate class="form-label fw-bold">Servings</label>
-                    <input type="number" name="servings" class="form-control" 
-                           value="{{ recipe.servings|default:'' }}" required>
-                </div>
-            </div>
+                <div class="card-body p-5">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
 
-            <div class="mb-4">
-                <label class="form-label fw-bold">Images (you can add more)</label>
-                <input type="file" name="images" multiple accept="image/*" class="form-control">
-                {% if recipe %}
-                    <small class="text-muted">Current images will stay. Upload new ones to add.</small>
-                {% endif %}
-            </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Title</label>
+                            <input type="text" name="title" class="form-control form-control-lg" 
+                                   value="{{ recipe.title|default:'' }}" required>
+                        </div>
 
-            <div class="text-center">
-                <button type="submit" class="btn btn-warning btn-lg px-5 fw-bold">
-                    {% if recipe %}Update Recipe{% else %}Publish Recipe{% endif %}
-                </button>
-                <a href="{% url 'accounts:chef_dashboard' %}" class="btn btn-secondary btn-lg px-5">Cancel</a>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Description</label>
+                            <textarea name="description" class="form-control" rows="6" required>{{ recipe.description|default:'' }}</textarea>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Prep Time (minutes)</label>
+                                <input type="number" name="prep_time" class="form-control form-control-lg" 
+                                       value="{{ recipe.prep_time|default:'' }}" min="1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Cook Time (minutes)</label>
+                                <input type="number" name="cook_time" class="form-control form-control-lg" 
+                                       value="{{ recipe.cook_time|default:'' }}" min="0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Servings</label>
+                                <input type="number" name="servings" class="form-control form-control-lg" 
+                                       value="{{ recipe.servings|default:'' }}" min="1" required>
+                            </div>
+                        </div>
+
+                        <!-- NEW: Ingredients -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Ingredients (one per line)</label>
+                            <textarea name="ingredients" class="form-control" rows="10" 
+                                      placeholder="Example:&#10;500g lamb&#10;2 onions&#10;3 tomatoes&#10;..." required>{{ recipe.ingredients|default:'' }}</textarea>
+                            <small class="text-muted">Write one ingredient per line for better display</small>
+                        </div>
+
+                        <!-- NEW: Steps -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Steps (one per line)</label>
+                            <textarea name="steps" class="form-control" rows="12" 
+                                      placeholder="1. Chop the onions...&#10;2. Heat the oil...&#10;3. Add the meat..." required>{{ recipe.steps|default:'' }}</textarea>
+                            <small class="text-muted">Number your steps for clear instructions</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Recipe Images (multiple allowed)</label>
+                            <input type="file" name="images" class="form-control form-control-lg" multiple accept="image/*">
+                            {% if recipe %}
+                                <small class="text-muted d-block mt-2">Current images will remain. Upload new ones to add more.</small>
+                                <div class="row g-3 mt-3">
+                                    {% for image in recipe.images.all %}
+                                    <div class="col-3">
+                                        <img src="{{ image.image.url }}" class="img-thumbnail" alt="Current image">
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <small class="text-muted">Add at least one beautiful photo of your dish!</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-center mt-5">
+                            <button type="submit" class="btn btn-yellow btn-lg px-5 fw-bold shadow">
+                                {% if recipe %}Update Recipe{% else %}Publish Recipe{% endif %}
+                            </button>
+                            <a href="{% url 'accounts:chef_dashboard' %}" class="btn btn-secondary btn-lg px-5 ms-3">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 {% endblock %}

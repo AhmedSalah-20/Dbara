@@ -8,11 +8,7 @@
 <div class="container py-5">
     <div class="row">
         <!-- Images Carousel -->
-<<<<<<< HEAD
         <div class="col-lg-8 mb-5">
-=======
-        <div class="col-lg-8 mb-4">
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
             <div id="recipeCarousel" class="carousel slide shadow-lg rounded-3" data-bs-ride="carousel">
                 <div class="carousel-inner">
                     {% for image in recipe.images.all %}
@@ -27,33 +23,20 @@
                 </div>
                 {% if recipe.images.all|length > 1 %}
                 <button class="carousel-control-prev" type="button" data-bs-target="#recipeCarousel" data-bs-slide="prev">
-<<<<<<< HEAD
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Previous</span>
                 </button>
                 <button class="carousel-control-next" type="button" data-bs-target="#recipeCarousel" data-bs-slide="next">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Next</span>
-=======
-                    <span class="carousel-control-prev-icon"></span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#recipeCarousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon"></span>
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                 </button>
                 {% endif %}
             </div>
         </div>
 
-<<<<<<< HEAD
         <!-- Recipe Info Sidebar -->
         <div class="col-lg-4">
             <div class="card shadow-lg border-0 sticky-top" style="top: 20px;">
-=======
-        <!-- Recipe Info -->
-        <div class="col-lg-4">
-            <div class="card shadow-lg border-0 h-100">
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                 <div class="card-body">
                     <h1 class="display-6 fw-bold text-warning mb-3">{{ recipe.title }}</h1>
                     <p class="text-muted mb-4">
@@ -75,7 +58,6 @@
                         </div>
                     </div>
 
-<<<<<<< HEAD
                     <!-- Favorite Button -->
                     {% if user.is_authenticated %}
                     <form method="POST" action="{% url 'accounts:toggle_favorite' recipe.pk %}" class="text-center mb-4">
@@ -181,10 +163,10 @@
                             </div>
                         </form>
 
-                        {% if recipe.ratings.exists %}
+                        {% if rating_count > 0 %}
                             <p class="mt-4">
-                                Average rating: <strong>{{ recipe.ratings.aggregate(avg=models.Avg('score'))['avg']|floatformat:1 }} / 5</strong>
-                                ({{ recipe.ratings.count }} rating{{ recipe.ratings.count|pluralize }})
+                                Average rating: <strong>{{ avg_rating|floatformat:1 }} / 5</strong>
+                                ({{ rating_count }} rating{{ rating_count|pluralize }})
                             </p>
                         {% endif %}
                     {% else %}
@@ -224,18 +206,6 @@
                     {% else %}
                         <p class="mt-4 text-muted">Please <a href="{% url 'accounts:login' %}">login</a> to comment.</p>
                     {% endif %}
-=======
-                    <hr class="border-secondary">
-
-                    <h4 class="fw-bold mb-3">Description</h4>
-                    <p class="lead">{{ recipe.description|linebreaks }}</p>
-
-                    <div class="text-center mt-5">
-                        <a href="{% url 'accounts:public_recipes' %}" class="btn btn-secondary btn-lg px-5">
-                            ← Back to Recipes
-                        </a>
-                    </div>
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
                 </div>
             </div>
         </div>

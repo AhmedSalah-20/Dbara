@@ -40,7 +40,6 @@ urlpatterns = [
 
     path('chef/<str:username>/', views.chef_profile_detail, name='chef_profile_detail'),
     path('chef/<str:username>/recipes/', views.chef_recipes, name='chef_recipes'),
-<<<<<<< HEAD
 
 path('visitor/dashboard/', views.visitor_dashboard, name='visitor_dashboard'),
 path('add_comment/<int:pk>/', views.add_comment, name='add_comment'),
@@ -50,6 +49,5 @@ path('favorites/', views.favorites, name='favorites'),
 path('chatbot/', views.chatbot, name='chatbot'),
 
 
-=======
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
+
 ]

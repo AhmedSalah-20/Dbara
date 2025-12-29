@@ -10,10 +10,11 @@
         <div class="col-lg-7">
             <div class="card shadow-lg border-0 rounded-4">
                 <div class="card-header bg-black text-warning text-center py-4 rounded-top">
-                    <h2 class="mb-0 fw-bold">Create Your Dbara Account</h2>
+                    <h2 class="mb-0 fw-bold">🇹🇳 Créez votre compte Dbara</h2>
+                    <p class="mb-0 opacity-75">Rejoignez la communauté des saveurs tunisiennes authentiques</p>
                 </div>
+                
                 <div class="card-body p-5">
-<<<<<<< HEAD
                     <!-- Messages Django -->
                     {% if messages %}
                         <div class="mb-4">
@@ -26,146 +27,137 @@
                         </div>
                     {% endif %}
 
-                    <form method="POST" enctype="multipart/form-data" id="signupForm">
-=======
-                    <form method="POST" enctype="multipart/form-data">
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
+                    <!-- Formulaire unique et propre -->
+                    <form method="POST" enctype="multipart/form-data" id="signupForm" novalidate>
                         {% csrf_token %}
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Username</label>
-                            <input type="text" name="username" class="form-control form-control-lg" required>
+                        <!-- 1. Informations de base -->
+                        <h5 class="fw-bold text-dark mb-4 border-bottom pb-2">👤 Informations personnelles</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Nom d'utilisateur</label>
+                                <input type="text" name="username" class="form-control form-control-lg" 
+                                       placeholder="Ex: ahmed_kamoun" maxlength="150" required>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Email</label>
+                                <input type="email" name="email" class="form-control form-control-lg" 
+                                       placeholder="votre@email.com" required>
+                            </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Email Address</label>
-                            <input type="email" name="email" class="form-control form-control-lg" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Mot de passe</label>
+                                <input type="password" name="password1" class="form-control form-control-lg" 
+                                       placeholder="Minimum 8 caractères" required>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Confirmer le mot de passe</label>
+                                <input type="password" name="password2" class="form-control form-control-lg" required>
+                            </div>
                         </div>
 
+                        <!-- 2. Photo de profil (tous les rôles) -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Password</label>
-                            <input type="password" name="password1" class="form-control form-control-lg" required>
+                            <label class="form-label fw-bold">📸 Photo de profil (optionnel)</label>
+                            <input type="file" name="profile_picture" class="form-control form-control-lg" 
+                                   accept="image/*">
+                            <small class="text-muted">Ajoutez une photo pour personnaliser votre profil</small>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Confirm Password</label>
-                            <input type="password" name="password2" class="form-control form-control-lg" required>
-                        </div>
-
-<<<<<<< HEAD
-                        <!-- Profile Picture – visible for ALL roles (optional) -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Profile Picture (optional)</label>
-                            <input type="file" name="profile_picture" class="form-control form-control-lg" accept="image/*">
-                            <small class="text-muted">Add a photo to personalize your profile</small>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">I want to register as</label>
+                        <!-- 3. Sélection du rôle -->
+                        <div class="mb-5">
+                            <label class="form-label fw-bold fs-5">🎭 Je m'inscris en tant que</label>
                             <select name="role" class="form-select form-select-lg" id="roleSelect" required>
-=======
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">I want to register as</label>
-                            <select name="role" class="form-select form-select-lg" id="roleSelect" onchange="toggleProfessionalFields()" required>
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
-                                <option value="visitor">Visitor</option>
-                                <option value="chef">Chef</option>
-                                <option value="nutritionist">Nutritionist</option>
+                                <option value="" disabled selected>-- Choisissez votre rôle --</option>
+                                <option value="visitor">👨‍👩‍👧‍👦 Visiteur (accès immédiat)</option>
+                                <option value="chef">👨‍🍳 Chef (validation admin requise)</option>
+                                <option value="nutritionist">💊 Nutritionniste (validation admin requise)</option>
                             </select>
                         </div>
 
-<<<<<<< HEAD
-                        <!-- Professional fields -->
-                        <div id="professionalFields" style="display:none;">
-                            <div class="alert alert-info mb-4">
-                                <strong>Important:</strong> Professional accounts require admin approval.
-=======
-                        <!-- Champs pour Chef et Nutritionniste -->
-                        <div id="professionalFields" style="display:none;">
-                            <div class="alert alert-info">
-                                <strong>Important:</strong> Professional accounts (Chef & Nutritionist) require admin approval. You will receive an email when your account is activated.
+                        <!-- 4. Champs professionnels (conditionnels) -->
+                        <div id="professionalFields" style="display: none;">
+                            <h5 class="fw-bold text-primary mb-4 border-bottom pb-2">🏆 Informations professionnelles</h5>
+                            
+                            <div class="alert alert-info border-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>⚠️ Important :</strong> Les comptes professionnels nécessitent une validation admin. 
+                                Vous recevrez un email lors de l'activation.
                             </div>
 
+                            <!-- Diplôme/Certificat -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold">Profile Picture</label>
-                                <input type="file" name="profile_picture" class="form-control form-control-lg" accept="image/*">
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
+                                <label class="form-label fw-bold">📜 Diplôme / Certificat (obligatoire)</label>
+                                <input type="file" name="certificate" class="form-control form-control-lg" 
+                                       accept=".pdf,image/*" required>
+                                <small class="text-muted">PDF ou image pour vérification admin</small>
                             </div>
 
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Diploma / Certificate (PDF or Image)</label>
-<<<<<<< HEAD
-                                <input type="file" name="certificate" class="form-control form-control-lg" accept=".pdf,image/*">
-                            </div>
-
-                            <div class="mb-4" id="specialityField" style="display:none;">
-=======
-                                <input type="file" name="certificate" class="form-control form-control-lg" accept=".pdf,image/*" required>
-                                <small class="text-muted">Required for admin verification</small>
-                            </div>
-
-                            <!-- Speciality – only for chefs -->
-                            <div class="mb-4" id="specialityField">
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
-                                <label class="form-label fw-bold">Speciality</label>
-                                <select name="speciality" class="form-select form-select-lg">
-                                    <option value="">-- Choose your speciality --</option>
-                                    <option value="traditional">Traditional Tunisian</option>
-                                    <option value="seafood">Seafood Specialist</option>
-                                    <option value="pastry">Pastry & Desserts</option>
-                                    <option value="grill">Grill & BBQ</option>
-                                    <option value="vegetarian">Vegetarian & Healthy</option>
-                                    <option value="fusion">Modern Fusion</option>
-                                    <option value="other">Other</option>
+                            <!-- Spécialité (chefs uniquement) -->
+                            <div class="mb-4" id="specialityField" style="display: none;">
+                                <label class="form-label fw-bold">🌟 Spécialité culinaire</label>
+                                <select name="speciality" class="form-select form-control-lg">
+                                    <option value="">-- Choisissez votre spécialité --</option>
+                                    <option value="traditional">🇹🇳 Cuisine traditionnelle tunisienne</option>
+                                    <option value="seafood">🐟 Fruits de mer & Poisson</option>
+                                    <option value="pastry">🍮 Pâtisserie & Desserts</option>
+                                    <option value="grill">🔥 Grillades & BBQ</option>
+                                    <option value="vegetarian">🥗 Végétarien & Sain</option>
+                                    <option value="fusion">✨ Fusion moderne</option>
+                                    <option value="other">Autres spécialités</option>
                                 </select>
                             </div>
 
+                            <!-- Région -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold">Region</label>
-<<<<<<< HEAD
-                                <select name="region" class="form-select form-select-lg">
-=======
-                                <select name="region" class="form-select form-select-lg" required>
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
-                                    <option value="">-- Select your region --</option>
-                                    <option value="tunis">Tunis</option>
-                                    <option value="ariana">Ariana</option>
-                                    <option value="sfax">Sfax</option>
-                                    <option value="sousse">Sousse</option>
-                                    <option value="monastir">Monastir</option>
-                                    <option value="bizerte">Bizerte</option>
-                                    <option value="nabeul">Nabeul</option>
-                                    <option value="other">Other Region</option>
+                                <label class="form-label fw-bold">📍 Région</label>
+                                <select name="region" class="form-select form-control-lg" required>
+                                    <option value="">-- Sélectionnez votre région --</option>
+                                    <option value="tunis">🏙️ Tunis</option>
+                                    <option value="ariana">🌿 Ariana</option>
+                                    <option value="sfax">⚓ Sfax</option>
+                                    <option value="sousse">🏖️ Sousse</option>
+                                    <option value="monastir">🕌 Monastir</option>
+                                    <option value="bizerte">⚓ Bizerte</option>
+                                    <option value="nabeul">🍊 Nabeul</option>
+                                    <option value="other">Autres régions</option>
                                 </select>
                             </div>
 
+                            <!-- Années d'expérience -->
                             <div class="mb-4">
-                                <label class="form-label fw-bold">Years of Experience</label>
-                                <input type="number" name="years_experience" class="form-control form-control-lg" min="0">
+                                <label class="form-label fw-bold">⏳ Années d'expérience</label>
+                                <input type="number" name="years_experience" class="form-control form-control-lg" 
+                                       min="0" max="50" placeholder="0">
                             </div>
 
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Short Bio</label>
-<<<<<<< HEAD
-                                <textarea name="bio" class="form-control" rows="5"></textarea>
-=======
-                                <textarea name="bio" class="form-control" rows="5" placeholder="Tell us about your professional background..."></textarea>
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
+                            <!-- Bio professionnelle -->
+                            <div class="mb-5">
+                                <label class="form-label fw-bold">✍️ Petite bio professionnelle</label>
+                                <textarea name="bio" class="form-control" rows="4" 
+                                          placeholder="Parlez-nous de votre parcours professionnel... 
+Ex: 'Chef spécialisé en cuisine tunisienne traditionnelle depuis 15 ans...'"></textarea>
+                                <small class="text-muted">Maximum 500 caractères recommandé</small>
                             </div>
                         </div>
 
+                        <!-- 5. Boutons d'action -->
                         <div class="text-center mt-5">
-<<<<<<< HEAD
-                            <button type="submit" class="btn btn-yellow btn-lg px-5 fw-bold shadow">
-                                Create Account
+                            <button type="submit" class="btn btn-yellow btn-lg px-5 py-3 fw-bold shadow-lg" id="submitBtn">
+                                <i class="bi bi-check-circle me-2"></i>Créer mon compte Dbara
                             </button>
                         </div>
 
-                        <div class="text-center mt-3">
-                            <p class="text-muted">Already have an account? <a href="{% url 'accounts:login' %}" class="text-warning fw-bold">Login here</a></p>
-=======
-                            <button type="submit" class="btn btn-yellow btn-lg px-5 fw-bold shadow">Create Account</button>
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
+                        <div class="text-center mt-4">
+                            <p class="text-muted mb-0">
+                                Déjà un compte ? 
+                                <a href="{% url 'accounts:login' %}" class="text-warning fw-bold text-decoration-none">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter
+                                </a>
+                            </p>
                         </div>
                     </form>
                 </div>
@@ -174,52 +166,41 @@
     </div>
 </div>
 
-<<<<<<< HEAD
-<!-- JavaScript safe – no onload conflict -->
+<!-- JavaScript optimisé (1 seule fonction) -->
 <script>
+document.addEventListener('DOMContentLoaded', function() {
     const roleSelect = document.getElementById('roleSelect');
     const professionalFields = document.getElementById('professionalFields');
     const specialityField = document.getElementById('specialityField');
 
     function toggleProfessionalFields() {
-        if (roleSelect.value === 'chef' || roleSelect.value === 'nutritionist') {
-            professionalFields.style.display = 'block';
-            if (roleSelect.value === 'chef') {
-                specialityField.style.display = 'block';
-            } else {
-                specialityField.style.display = 'none';
-            }
-        } else {
-            professionalFields.style.display = 'none';
+        const role = roleSelect.value;
+        const showProfessional = role === 'chef' || role === 'nutritionist';
+        
+        professionalFields.style.display = showProfessional ? 'block' : 'none';
+        
+        if (showProfessional) {
+            specialityField.style.display = role === 'chef' ? 'block' : 'none';
         }
     }
 
-    // Attach to change event only
+    // Écouteur d'événement
     roleSelect.addEventListener('change', toggleProfessionalFields);
-
-    // Initial call
+    
+    // Initialisation
     toggleProfessionalFields();
-=======
-<script>
-function toggleProfessionalFields() {
-    const role = document.getElementById('roleSelect').value;
-    const fields = document.getElementById('professionalFields');
-    const specialityField = document.getElementById('specialityField');
 
-    if (role === 'chef' || role === 'nutritionist') {
-        fields.style.display = 'block';
-        // Speciality only for chefs
-        if (role === 'chef') {
-            specialityField.style.display = 'block';
-        } else {
-            specialityField.style.display = 'none';
+    // Validation client-side
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+        const password1 = document.querySelector('input[name="password1"]').value;
+        const password2 = document.querySelector('input[name="password2"]').value;
+        
+        if (password1 !== password2) {
+            e.preventDefault();
+            alert('❌ Les mots de passe ne correspondent pas !');
+            return false;
         }
-    } else {
-        fields.style.display = 'none';
-    }
-}
-
-window.onload = toggleProfessionalFields;
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
+    });
+});
 </script>
 {% endblock %}

@@ -52,7 +52,6 @@ class UserProfile(models.Model):
     def is_nutritionist(self):
         return self.role == 'nutritionist'
 
-
 class Recipe(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recipes')
     title = models.CharField(max_length=200)
@@ -60,22 +59,23 @@ class Recipe(models.Model):
     prep_time = models.PositiveIntegerField(help_text="In minutes")
     cook_time = models.PositiveIntegerField(help_text="In minutes")
     servings = models.PositiveIntegerField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)
     views = models.PositiveIntegerField(default=0)
-    
-    # Admin approval required for public visibility
-    is_approved = models.BooleanField(default=False, help_text="Only approved recipes are visible to the public")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # ADD THESE TWO FIELDS
+    ingredients = models.TextField(blank=True, help_text="List of ingredients (one per line)")
+    steps = models.TextField(blank=True, help_text="Preparation steps (one per line)")
 
     def __str__(self):
         return self.title
-
 
 class RecipeImage(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='recipes/')
 
     def __str__(self):
-<<<<<<< HEAD
+
         return f"Image for {self.recipe.title}"
     
     # NEW: Comment on recipe
@@ -119,6 +119,6 @@ class Favorite(models.Model):
 
 
     
-=======
+
         return f"Image for {self.recipe.title}"
->>>>>>> b86e3f5426852e49c5b397d2b5702cb7885b4b02
+

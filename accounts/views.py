@@ -491,13 +491,33 @@ def chef_recipes(request, username):
 @login_required
 def add_comment(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk, is_approved=True)
+
+    parent = None
     if request.method == 'POST':
         content = request.POST.get('content', '').strip()
+        parent_id = request.POST.get('parent')
         if content:
-            Comment.objects.create(recipe=recipe, author=request.user, content=content)
+            if parent_id:
+                parent = get_object_or_404(Comment, pk=parent_id, recipe=recipe)
+            Comment.objects.create(
+                recipe=recipe,
+                author=request.user,
+                content=content,
+                parent=parent
+            )
             messages.success(request, "Comment added!")
-    return redirect('accounts:recipe_detail', pk=pk)
+        return redirect('accounts:recipe_detail', pk=pk)
 
+    # If GET with ?parent=ID → prepare reply
+    parent_id = request.GET.get('parent')
+    if parent_id:
+        parent = get_object_or_404(Comment, pk=parent_id, recipe=recipe)
+
+    return render(request, 'public/recipe_detail.html', {
+        'recipe': recipe,
+        # your other context...
+        'reply_parent': parent,  # send parent comment to template
+    })
 
 @never_cache
 @login_required
@@ -520,9 +540,11 @@ def toggle_favorite(request, pk):
     fav, created = Favorite.objects.get_or_create(user=request.user, recipe=recipe)
     if not created:
         fav.delete()
-        messages.info(request, "Removed from favorites")
+        messages.info(request, "Removed from favorites ❤️")
     else:
-        messages.success(request, "Added to favorites")
+        messages.success(request, "Added to favorites 🤍")
+    
+    # ← THIS LINE FIXES IT: redirect to the same recipe page
     return redirect('accounts:recipe_detail', pk=pk)
 
 

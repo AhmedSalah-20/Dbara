@@ -83,6 +83,7 @@ class Comment(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -92,7 +93,7 @@ class Comment(models.Model):
         ordering = ['-created_at']
 
 # NEW: Rating on recipe (1-5 stars)
-# accounts/models.py
+
 class Rating(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='ratings')
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings_given')

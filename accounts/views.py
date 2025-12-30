@@ -173,7 +173,13 @@ def visitor_dashboard(request):
         return redirect('accounts:home')
 
     favorites = Favorite.objects.filter(user=request.user).select_related('recipe', 'recipe__author')
-    context = {'favorites': favorites}
+
+    unread_notifications_count = request.user.notifications.filter(is_read=False).count()
+
+    context = {
+        'favorites': favorites,
+        'unread_notifications_count': unread_notifications_count,
+    }
     return render(request, 'visitor/dashboard.html', context)
 
 
@@ -187,10 +193,13 @@ def chef_dashboard(request):
     recipes = Recipe.objects.filter(author=request.user).order_by('-created_at')
     total_views = recipes.aggregate(total=Sum('views'))['total'] or 0
 
+    unread_notifications_count = request.user.notifications.filter(is_read=False).count()
+
     context = {
         'recipes': recipes,
         'total_recipes': recipes.count(),
         'total_views': total_views,
+        'unread_notifications_count': unread_notifications_count,
     }
     return render(request, 'chef/dashboard.html', context)
 

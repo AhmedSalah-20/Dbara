@@ -1,3 +1,4 @@
+<!-- templates/public/recipes_list.html -->
 {% extends 'base/base.html' %}
 {% load static %}
 
@@ -12,22 +13,33 @@
     <div class="row g-4">
         {% for recipe in recipes %}
         <div class="col-md-6 col-lg-4">
-            <div class="card shadow h-100 border-0">
+            <div class="card shadow h-100 border-0 overflow-hidden hover-lift">
                 {% if recipe.images.first %}
-                    <img src="{{ recipe.images.first.image.url }}" class="card-img-top" style="height:230px; object-fit:cover;">
+                    <img src="{{ recipe.images.first.image.url }}" class="card-img-top" style="height:230px; object-fit:cover;" alt="{{ recipe.title }}">
                 {% else %}
-                    <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:230px; object-fit:cover;">
+                    <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:230px; object-fit:cover;" alt="{{ recipe.title }}">
                 {% endif %}
-                <div class="card-body bg-dark text-white">
-                    <h5 class="card-title fw-bold">{{ recipe.title }}</h5>
-                    <p class="small text-warning">
-                        Par Chef {{ recipe.author.username }} • {{ recipe.views }} vues
+                <div class="card-body bg-dark text-white d-flex flex-column">
+                    <h5 class="card-title fw-bold mb-2">{{ recipe.title }}</h5>
+                    <p class="small text-warning mb-3">
+                        Par Chef {{ recipe.author.username }} • {{ recipe.views }} vue{{ recipe.views|pluralize }}
                     </p>
-                    {% if recipe.pk %}
-    <a href="{% url 'accounts:recipe_detail' recipe.pk %}" class="btn btn-outline-warning btn-sm">View Recipe</a>
-{% else %}
-    <span class="btn btn-outline-secondary btn-sm disabled">View Recipe</span>
-{% endif %}
+
+                    <div class="mt-auto">
+                        <!-- Bouton Favoris : visible SEULEMENT si pas déjà dans les favoris et si l'utilisateur est Visiteur -->
+                        {% if user.is_authenticated and user.userprofile.role == 'visitor' and recipe not in user.favorites.all %}
+                            <form method="POST" action="{% url 'accounts:toggle_favorite' recipe.pk %}" class="mb-3">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm w-100 fw-bold">
+                                    🤍 Add to Favorites
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        <a href="{% url 'accounts:recipe_detail' recipe.pk %}" class="btn btn-outline-warning btn-sm w-100 fw-bold">
+                            View Recipe
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -38,4 +50,14 @@
         {% endfor %}
     </div>
 </div>
+
+<style>
+    .hover-lift {
+        transition: all 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+</style>
 {% endblock %}

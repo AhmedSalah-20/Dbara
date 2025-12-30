@@ -1,26 +1,75 @@
+<!-- templates/visitor/favorites.html -->
 {% extends 'base/base.html' %}
+{% load static %}
 
-{% block title %}My Favorites{% endblock %}
+{% block title %}My Favorites - {{ user.username }} - Dbara{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <h1 class="text-center fw-bold mb-5">My Favorite Recipes</h1>
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold" style="color:#ffd700;">My Favorite Recipes ❤️</h1>
+        <p class="lead text-muted">Your personal collection of delicious Tunisian dishes</p>
+    </div>
+
     {% if favorites %}
         <div class="row g-4">
             {% for fav in favorites %}
             <div class="col-md-6 col-lg-4">
-                <div class="card shadow">
-                    <img src="{{ fav.recipe.images.first.image.url|default:'/static/images/default-recipe.jpg' }}" class="card-img-top" style="height:230px; object-fit:cover;">
-                    <div class="card-body">
-                        <h5>{{ fav.recipe.title }}</h5>
-                        <a href="{% url 'accounts:recipe_detail' fav.recipe.pk %}" class="btn btn-warning btn-sm">View</a>
+                <div class="card shadow-lg hover-lift h-100 border-0 overflow-hidden">
+                    {% if fav.recipe.images.first %}
+                        <img src="{{ fav.recipe.images.first.image.url }}" class="card-img-top" style="height:250px; object-fit:cover;" alt="{{ fav.recipe.title }}">
+                    {% else %}
+                        <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:250px; object-fit:cover;" alt="{{ fav.recipe.title }}">
+                    {% endif %}
+                    <div class="card-body bg-dark text-white d-flex flex-column">
+                        <h5 class="card-title fw-bold mb-3">{{ fav.recipe.title }}</h5>
+                        <p class="small text-warning mb-2">By Chef {{ fav.recipe.author.username }}</p>
+                        <p class="small text-muted mb-4">{{ fav.recipe.views }} view{{ fav.recipe.views|pluralize }}</p>
+
+                        <div class="mt-auto">
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'accounts:recipe_detail' fav.recipe.pk %}" class="btn btn-warning btn-lg fw-bold">
+                                    View Recipe
+                                </a>
+                                <form method="POST" action="{% url 'accounts:toggle_favorite' fav.recipe.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-lg fw-bold">
+                                        ❤️ Remove from Favorites
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
     {% else %}
-        <p class="text-center lead text-muted">No favorites yet.</p>
+        <div class="text-center py-5 bg-light rounded-4 shadow-lg">
+            <div class="py-4">
+                <h4 class="text-dark mb-4">Your favorites list is empty</h4>
+                <p class="lead text-muted mb-5">Start discovering amazing Tunisian recipes and save your favorites!</p>
+                <a href="{% url 'accounts:public_recipes' %}" class="btn btn-warning btn-lg px-5 fw-bold shadow">
+                    Discover Recipes
+                </a>
+            </div>
+        </div>
     {% endif %}
 </div>
+
+<style>
+    .hover-lift {
+        transition: all 0.4s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.2) !important;
+    }
+    .card-img-top {
+        transition: transform 0.4s ease;
+    }
+    .hover-lift:hover .card-img-top {
+        transform: scale(1.05);
+    }
+</style>
 {% endblock %}

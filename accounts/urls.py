@@ -48,6 +48,11 @@ path('toggle_favorite/<int:pk>/', views.toggle_favorite, name='toggle_favorite')
 path('favorites/', views.favorites, name='favorites'),
 path('chatbot/', views.chatbot, name='chatbot'),
 
+path('mark-notifications-read/', views.mark_notifications_read, name='mark_notifications_read'),
 
+path('notification/<int:notif_id>/read/', views.read_notification, name='read_notification'),
+
+
+path('notifications/', views.notifications, name='notifications'),
 
 ]

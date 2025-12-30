@@ -20,6 +20,12 @@
                     <a href="{% url 'accounts:chatbot' %}" class="list-group-item list-group-item-action">
                         🤖 Chat with Gemini
                     </a>
+                    <a href="{% url 'accounts:notifications' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        🔔 Notifications
+                        {% if request.user.notifications.unread.count > 0 %}
+                            <span class="badge bg-danger rounded-pill">{{ request.user.notifications.unread.count }}</span>
+                        {% endif %}
+                    </a>
                 </div>
             </div>
         </div>
@@ -31,6 +37,41 @@
                 <p class="lead text-muted">Discover, save, and enjoy the best Tunisian recipes</p>
             </div>
 
+            <!-- Unread Notifications in Dashboard -->
+            <div class="mb-5">
+                {% if request.user.notifications.unread.exists %}
+                    <div class="card shadow-lg border-0">
+                        <div class="card-header bg-dark text-warning d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Unread Notifications ({{ request.user.notifications.unread.count }})</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group list-group-flush">
+                                {% for notif in request.user.notifications.unread %}
+                                <li class="list-group-item bg-light fw-bold">
+                                    <a href="{% url 'accounts:read_notification' notif.id %}" class="text-decoration-none text-dark">
+                                        {{ notif.message }}
+                                        <small class="d-block text-muted">{{ notif.created_at|timesince }} ago</small>
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="text-center mt-3">
+                                <a href="{% url 'accounts:notifications' %}" class="btn btn-sm btn-outline-warning">
+                                    View all notifications
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="alert alert-light text-center py-4">
+                        <p class="mb-0 text-muted">No unread notifications. You're all caught up!</p>
+                        <a href="{% url 'accounts:notifications' %}" class="btn btn-sm btn-outline-secondary mt-2">
+                            View history
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
             <h3 class="fw-bold mb-4 text-dark">My Favorite Recipes</h3>
 
             {% if favorites %}
@@ -39,15 +80,34 @@
                     <div class="col-md-6 col-lg-4">
                         <div class="card shadow-lg hover-lift h-100 border-0 overflow-hidden">
                             {% if fav.recipe.images.first %}
-                                <img src="{{ fav.recipe.images.first.image.url }}" class="card-img-top" style="height:220px; object-fit:cover;" alt="{{ fav.recipe.title }}">
+                                <img src="{{ fav.recipe.images.first.image.url }}" 
+                                     class="card-img-top" 
+                                     style="height:220px; object-fit:cover;" 
+                                     alt="{{ fav.recipe.title }}">
                             {% else %}
-                                <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:220px; object-fit:cover;" alt="{{ fav.recipe.title }}">
+                                <img src="{% static 'images/default-recipe.jpg' %}" 
+                                     class="card-img-top" 
+                                     style="height:220px; object-fit:cover;" 
+                                     alt="{{ fav.recipe.title }}">
                             {% endif %}
-                            <div class="card-body bg-dark text-white text-center p-4">
+                            <div class="card-body bg-dark text-white text-center p-4 d-flex flex-column">
                                 <h5 class="card-title fw-bold mb-3">{{ fav.recipe.title }}</h5>
                                 <p class="small text-warning mb-2">By Chef {{ fav.recipe.author.username }}</p>
                                 <p class="small text-muted mb-3">{{ fav.recipe.views }} view{{ fav.recipe.views|pluralize }}</p>
-                                <a href="{% url 'accounts:recipe_detail' fav.recipe.pk %}" class="btn btn-warning btn-sm px-4 fw-bold">View Recipe</a>
+
+                                <div class="mt-auto">
+                                    <a href="{% url 'accounts:recipe_detail' fav.recipe.pk %}" 
+                                       class="btn btn-warning btn-sm px-4 fw-bold mb-2 w-100">
+                                        View Recipe
+                                    </a>
+
+                                    <form method="POST" action="{% url 'accounts:toggle_favorite' fav.recipe.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger btn-sm px-4 fw-bold w-100">
+                                            ❤️ Remove from Favorites
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>

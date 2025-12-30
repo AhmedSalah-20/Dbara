@@ -10,7 +10,8 @@ from django.db import transaction
 from django.conf import settings
 from django.core.mail import send_mail
 from django.views.decorators.cache import never_cache
-from .models import UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite
+from .models import UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite, Notification
+from django.urls import reverse
 import google.generativeai as genai
 from django.db.models import Avg
 
@@ -492,61 +493,101 @@ def chef_recipes(request, username):
 def add_comment(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk, is_approved=True)
 
-    parent = None
     if request.method == 'POST':
         content = request.POST.get('content', '').strip()
         parent_id = request.POST.get('parent')
         if content:
+            parent = None
             if parent_id:
                 parent = get_object_or_404(Comment, pk=parent_id, recipe=recipe)
-            Comment.objects.create(
+
+            comment = Comment.objects.create(
                 recipe=recipe,
                 author=request.user,
                 content=content,
                 parent=parent
             )
-            messages.success(request, "Comment added!")
+
+            # Notification pour le Chef (seulement si c'est un Visiteur qui commente)
+            if request.user.userprofile.role == 'visitor':
+                Notification.objects.create(
+                    user=recipe.author,
+                    message=f"{request.user.username} a commenté votre recette '{recipe.title}'",
+                    link=reverse('accounts:recipe_detail', args=[recipe.pk]) + '#comments-section'
+                )
+
+            # Si c'est une réponse → notification pour l'auteur du commentaire parent (Visiteur)
+            if parent and parent.author != recipe.author:  # évite d'envoyer au Chef s'il répond
+                Notification.objects.create(
+                    user=parent.author,
+                    message=f"Le Chef {recipe.author.username} a répondu à votre commentaire sur '{recipe.title}'",
+                    link=reverse('accounts:recipe_detail', args=[recipe.pk]) + '#comments-section'
+                )
+
+            messages.success(request, "Commentaire ajouté !")
         return redirect('accounts:recipe_detail', pk=pk)
 
-    # If GET with ?parent=ID → prepare reply
-    parent_id = request.GET.get('parent')
-    if parent_id:
-        parent = get_object_or_404(Comment, pk=parent_id, recipe=recipe)
-
-    return render(request, 'public/recipe_detail.html', {
-        'recipe': recipe,
-        # your other context...
-        'reply_parent': parent,  # send parent comment to template
-    })
+    return redirect('accounts:recipe_detail', pk=pk)
 
 @never_cache
 @login_required
 def add_rating(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk, is_approved=True)
+    if request.user == recipe.author:
+        messages.error(request, "Vous ne pouvez pas noter votre propre recette.")
+        return redirect('accounts:recipe_detail', pk=pk)
+
     if request.method == 'POST':
         score = request.POST.get('score')
         if score and score.isdigit():
             score = int(score)
             if 1 <= score <= 5:
-                Rating.objects.update_or_create(recipe=recipe, author=request.user, defaults={'score': score})
-                messages.success(request, "Rating added!")
-    return redirect('accounts:recipe_detail', pk=pk)
+                Rating.objects.update_or_create(
+                    recipe=recipe,
+                    author=request.user,
+                    defaults={'score': score}
+                )
 
+                # Notification pour le Chef (nouvelle note)
+                Notification.objects.create(
+                    user=recipe.author,
+                    message=f"{request.user.username} a noté votre recette '{recipe.title}' : {score}/5 ⭐",
+                    link=reverse('accounts:recipe_detail', args=[recipe.pk]) + '#ratings-section'
+                )
+
+                messages.success(request, "Note ajoutée !")
+    return redirect('accounts:recipe_detail', pk=pk)
 
 @never_cache
 @login_required
 def toggle_favorite(request, pk):
+    # Favoris réservés aux Visiteurs seulement
+    if request.user.userprofile.role != 'visitor':
+        messages.error(request, "This feature is only for visitors.")
+        return redirect('accounts:recipe_detail', pk=pk)
+
     recipe = get_object_or_404(Recipe, pk=pk, is_approved=True)
+
     fav, created = Favorite.objects.get_or_create(user=request.user, recipe=recipe)
+    
     if not created:
         fav.delete()
         messages.info(request, "Removed from favorites ❤️")
     else:
         messages.success(request, "Added to favorites 🤍")
-    
-    # ← THIS LINE FIXES IT: redirect to the same recipe page
-    return redirect('accounts:recipe_detail', pk=pk)
 
+    # Redirection intelligente selon la page d'origine
+    referer = request.META.get('HTTP_REFERER', '')
+
+    if 'favorites' in referer or request.path == '/favorites/':
+        # Si on vient de My Favorites → reste sur le dashboard
+        return redirect('accounts:favorites')
+    elif referer:
+        # Sinon, retourne à la page précédente (liste ou détail)
+        return redirect(referer)
+    else:
+        # Fallback
+        return redirect('accounts:public_recipes')
 
 @never_cache
 @login_required
@@ -590,3 +631,29 @@ def nutritionist_chatbot(request):
             request.session.modified = True
 
     return render(request, 'nutritionist/chatbot.html', {'chat_history': chat_history})
+
+
+
+
+@never_cache
+@login_required
+
+def mark_notifications_read(request):
+    request.user.notifications.filter(is_read=False).update(is_read=True)
+    messages.success(request, "All notifications marked as read.")
+    return redirect(request.META.get('HTTP_REFERER', request.path))
+
+@never_cache
+@login_required
+def read_notification(request, notif_id):
+    notif = get_object_or_404(Notification, id=notif_id, user=request.user)
+    notif.is_read = True
+    notif.save()
+    return redirect(notif.link or 'accounts:visitor_dashboard')
+
+
+@never_cache
+@login_required
+def notifications(request):
+    notifications = request.user.notifications.all()
+    return render(request, 'accounts/notifications.html', {'notifications': notifications})

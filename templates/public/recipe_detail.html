@@ -58,18 +58,21 @@
                         </div>
                     </div>
 
-                    <!-- Favorite Button -->
-                    {% if user.is_authenticated %}
-                    <form method="POST" action="{% url 'accounts:toggle_favorite' recipe.pk %}" class="text-center mb-4">
-                        {% csrf_token %}
-                        <button type="submit" class="btn {% if recipe in user.favorites.all %}btn-danger{% else %}btn-success{% endif %} btn-lg w-100">
-                            {% if recipe in user.favorites.all %}
-                                ❤️ Remove from Favorites
-                            {% else %}
-                                🤍 Add to Favorites
-                            {% endif %}
-                        </button>
-                    </form>
+                    <!-- Favorite Button – visible ONLY if NOT already in favorites and user is visitor -->
+                    {% if user.is_authenticated and user.userprofile.role == 'visitor' %}
+                        {% if recipe not in user.favorites.all %}
+                            <form method="POST" action="{% url 'accounts:toggle_favorite' recipe.pk %}" class="mb-4">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">
+                                    🤍 Add to Favorites
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-success text-center mb-4 py-3">
+                                <strong>❤️ This recipe is in your favorites!</strong><br>
+                                <small>Manage it in <a href="{% url 'accounts:favorites' %}" class="text-decoration-underline">My Favorites</a></small>
+                            </div>
+                        {% endif %}
                     {% endif %}
 
                     <a href="{% url 'accounts:public_recipes' %}" class="btn btn-secondary btn-lg w-100">

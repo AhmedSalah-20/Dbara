@@ -1,0 +1,33 @@
+<!-- templates/accounts/notifications.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}My Notifications - {{ user.username }} - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="display-4 fw-bold text-center mb-5" style="color:#ffd700;">My Notifications 🔔</h1>
+
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-dark text-warning">
+            <h5 class="mb-0">Notification History</h5>
+        </div>
+        <div class="card-body">
+            {% if request.user.notifications.exists %}
+                <ul class="list-group list-group-flush">
+                    {% for notif in request.user.notifications.all %}
+                    <li class="list-group-item {% if not notif.is_read %}bg-light fw-bold{% endif %}">
+                        <a href="{% url 'accounts:read_notification' notif.id %}" class="text-decoration-none text-dark">
+                            {{ notif.message }}
+                            <small class="d-block text-muted">{{ notif.created_at|timesince }} ago</small>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted text-center py-4">No notifications yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

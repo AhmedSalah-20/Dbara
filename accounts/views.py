@@ -461,11 +461,14 @@ def recipe_detail(request, pk):
     rating_agg = recipe.ratings.aggregate(avg=Avg('score'))
     avg_rating = rating_agg['avg'] if rating_agg['avg'] is not None else 0.0
     rating_count = recipe.ratings.count()
+    # All individual ratings with author
+    individual_ratings = recipe.ratings.select_related('author').order_by('-created_at')
 
     context = {
         'recipe': recipe,
         'avg_rating': avg_rating,
         'rating_count': rating_count,
+        'individual_ratings': individual_ratings,
     }
     return render(request, 'public/recipe_detail.html', context)
 

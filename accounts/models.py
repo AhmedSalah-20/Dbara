@@ -92,14 +92,15 @@ class Comment(models.Model):
         ordering = ['-created_at']
 
 # NEW: Rating on recipe (1-5 stars)
+# accounts/models.py
 class Rating(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='ratings')
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    score = models.PositiveSmallIntegerField(choices=[(1, '1 Star'), (2, '2 Stars'), (3, '3 Stars'), (4, '4 Stars'), (5, '5 Stars')])
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings_given')
+    score = models.PositiveSmallIntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')])
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['author', 'recipe']
+        unique_together = ('author', 'recipe')
 
     def __str__(self):
         return f"{self.score} stars by {self.author.username} on {self.recipe.title}"

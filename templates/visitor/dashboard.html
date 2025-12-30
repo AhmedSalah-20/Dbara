@@ -2,7 +2,7 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}My Dashboard - {{ user.username }} - Dbara{% endblock %}
+{% block title %}My Space - {{ user.username }} - Dbara{% endblock %}
 
 {% block content %}
 <div class="container py-5">
@@ -14,9 +14,6 @@
                     <h5 class="mb-0 fw-bold">My Menu</h5>
                 </div>
                 <div class="list-group list-group-flush">
-                    <a href="{% url 'accounts:visitor_dashboard' %}" class="list-group-item list-group-item-action active bg-primary text-white">
-                        📊 My Dashboard
-                    </a>
                     <a href="{% url 'accounts:favorites' %}" class="list-group-item list-group-item-action">
                         ❤️ My Favorites
                     </a>
@@ -31,7 +28,7 @@
         <div class="col-lg-9">
             <div class="text-center mb-5">
                 <h2 class="display-5 fw-bold" style="color:#ffd700;">Welcome back, {{ user.username }}! 👋</h2>
-                <p class="lead text-muted">Your personal space to explore Tunisian flavors</p>
+                <p class="lead text-muted">Discover, save, and enjoy the best Tunisian recipes</p>
             </div>
 
             <h3 class="fw-bold mb-4 text-dark">My Favorite Recipes</h3>
@@ -59,7 +56,7 @@
             {% else %}
                 <div class="text-center py-5 bg-light rounded-4 shadow">
                     <p class="lead text-muted mb-4">You haven't saved any recipes yet.</p>
-                    <p class="text-secondary mb-4">Start exploring and add your favorite Tunisian dishes!</p>
+                    <p class="text-secondary mb-4">Explore Dbara and save your favorite dishes!</p>
                     <a href="{% url 'accounts:public_recipes' %}" class="btn btn-yellow btn-lg px-5 fw-bold shadow">
                         Discover Recipes
                     </a>

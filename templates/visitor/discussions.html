@@ -1,0 +1,58 @@
+<!-- templates/visitor/discussions.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}My Discussions - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="display-4 fw-bold text-center mb-5" style="color:#38ef7d;">
+        My Discussions with Nutritionists
+    </h1>
+
+    {% if conversations %}
+        {% for thread in conversations %}
+        <div class="card shadow-lg mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Conversation with Dr. {{ thread.0.recipient.username }}</h5>
+                <small>Started {{ thread.0.sent_at|date:"d M Y" }}</small>
+            </div>
+            <div class="card-body">
+                {% for msg in thread %}
+                <div class="border-start {% if msg.sender == user %}border-primary{% else %}border-success{% endif %} ps-3 mb-3">
+                    <strong class="{% if msg.sender == user %}text-primary{% else %}text-success{% endif %}">
+                        {{ msg.sender.username }}
+                    </strong>
+                    <small class="text-muted"> – {{ msg.sent_at|date:"d M Y H:i" }}</small>
+                    <p class="mt-2">{{ msg.message|linebreaks }}</p>
+                </div>
+                {% endfor %}
+
+                <!-- Bouton "View & Reply" si le dernier message est du nutritionniste -->
+                {% with last_msg=thread.last %}
+                    {% if last_msg.sender != user %}
+                        <div class="text-end mt-3">
+                            <a href="{% url 'accounts:conversation_detail' thread.0.pk %}" class="btn btn-success btn-sm fw-bold">
+                                💬 View & Reply
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-end mt-3">
+                            <small class="text-muted">Waiting for reply...</small>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-5">
+            <div class="alert alert-info rounded-4 shadow">
+                <h4>No discussions yet</h4>
+                <p class="lead text-muted">When you contact a nutritionist about a recipe, your conversations will appear here.</p>
+                <i class="display-1 text-success mt-3">💬</i>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

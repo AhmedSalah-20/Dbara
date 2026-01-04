@@ -1,0 +1,55 @@
+<!-- templates/nutritionist/collaboration.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Collaboration - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="display-4 fw-bold text-center mb-5" style="color:#38ef7d;">
+        Collaboration & Messages
+    </h1>
+
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white">
+            <h4>Discussions with Visitors</h4>
+        </div>
+        <div class="card-body">
+            {% if conversations %}
+                {% for conv in conversations %}
+                <div class="border rounded p-4 mb-4 bg-light">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <strong>From:</strong> {{ conv.original.sender.username }}<br>
+                            <strong>Subject:</strong> {{ conv.original.subject }}<br>
+                            <small class="text-muted">{{ conv.original.sent_at|date:"d M Y H:i" }}</small>
+                        </div>
+                        {% if conv.original.is_read == False %}
+                            <span class="badge bg-danger">New</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Thread de messages -->
+                    {% for msg in conv.thread %}
+                    <div class="border-start border-success ps-3 my-3">
+                        <strong>{{ msg.sender.username }}</strong> 
+                        <small class="text-muted">({{ msg.sent_at|date:"H:i" }})</small>
+                        <p class="mt-2 mb-0">{{ msg.message|linebreaks }}</p>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Bouton répondre -->
+                    <div class="text-end mt-3">
+                        <a href="{% url 'accounts:conversation_detail' conv.original.pk %}">
+    View & Reply
+</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-center text-muted py-5">No messages yet. Visitors will contact you soon!</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

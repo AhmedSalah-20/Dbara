@@ -1,23 +1,22 @@
-# accounts/views.py – VERSION FINALE COMPLÈTE & SÉCURISÉE
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.contrib.auth.models import User
-from django.db.models import Sum, Q as models_Q
+from django.db.models import Sum, Q as models_Q, Count, Avg
 from django.db import transaction
 from django.conf import settings
 from django.core.mail import send_mail
 from django.views.decorators.cache import never_cache
-from .models import UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite, Notification, RecipeAnalysis, NutritionFactSheet
+from django.contrib import messages  # ← Import correct
 from django.urls import reverse
-import google.generativeai as genai
-from django.db.models import Avg
-from django.db.models import Count
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import google.generativeai as genai
 
+from .models import (
+    UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite,
+    Notification, RecipeAnalysis, NutritionFactSheet, NutritionMessage
+)
 
 # ====================== BASIC VIEWS ======================
 def home(request):
@@ -49,7 +48,6 @@ def home(request):
         'popular_recipes': popular_recipes,
     }
     return render(request, 'base/home.html', context)
-
 
 def signup(request):
     if request.method == 'POST':
@@ -178,10 +176,12 @@ def visitor_dashboard(request):
     favorites = Favorite.objects.filter(user=request.user).select_related('recipe', 'recipe__author')
 
     unread_notifications_count = request.user.notifications.filter(is_read=False).count()
+    unread_messages_count = NutritionMessage.objects.filter(recipient=request.user, is_read=False).count()
 
     context = {
         'favorites': favorites,
         'unread_notifications_count': unread_notifications_count,
+        'unread_messages_count': unread_messages_count,
     }
     return render(request, 'visitor/dashboard.html', context)
 
@@ -216,18 +216,17 @@ def nutritionist_dashboard(request):
 
     nutritionist = request.user
 
+    # Compteurs généraux
     analyzed_recipes_count = RecipeAnalysis.objects.filter(nutritionist=nutritionist).count()
     sheets_count = NutritionFactSheet.objects.filter(nutritionist=nutritionist).count()
 
+    # Classement santé
     analyses = RecipeAnalysis.objects.filter(nutritionist=nutritionist)
     healthy_count = analyses.filter(calories__lte=400).count()
     moderate_count = analyses.filter(calories__gt=400, calories__lte=700).count()
     improvement_count = analyses.filter(calories__gt=700).count()
 
     # Graphique mensuel (6 derniers mois)
-    from datetime import datetime
-    from dateutil.relativedelta import relativedelta
-
     six_months_ago = datetime.now() - relativedelta(months=6)
     monthly_analysis = (
         RecipeAnalysis.objects.filter(
@@ -243,7 +242,15 @@ def nutritionist_dashboard(request):
     months = [item['month'] for item in monthly_analysis]
     counts = [item['count'] for item in monthly_analysis]
 
+    # Notifications et messages non lus
     unread_notifications_count = request.user.notifications.filter(is_read=False).count()
+    unread_messages_count = NutritionMessage.objects.filter(recipient=request.user, is_read=False).count()
+
+    # NOUVEAU : Liste des recettes analysées (pour la section "My Analyzed Recipes")
+    analyzed_recipes = RecipeAnalysis.objects.filter(nutritionist=nutritionist)\
+        .select_related('recipe', 'recipe__author')\
+        .prefetch_related('recipe__images')\
+        .order_by('-analyzed_at')
 
     context = {
         'analyzed_recipes_count': analyzed_recipes_count,
@@ -254,6 +261,9 @@ def nutritionist_dashboard(request):
         'chart_months': months,
         'chart_counts': counts,
         'unread_notifications_count': unread_notifications_count,
+        'unread_messages_count': unread_messages_count,
+        # Ajout crucial pour le template
+        'analyzed_recipes': analyzed_recipes,
     }
     return render(request, 'nutritionist/dashboard.html', context)
 
@@ -323,10 +333,7 @@ def favorites(request):
     return render(request, 'visitor/favorites.html', {'favorites': favorites})
 
 
-@never_cache
-@login_required
-def chatbot(request):
-    return render(request, 'visitor/chatbot.html')
+
 
 
 # ====================== CHEF RECIPE ACTIONS ======================
@@ -431,14 +438,6 @@ def nutritionist_fiches(request):
     return render(request, 'nutritionist/fiches.html')
 
 
-#@never_cache
-#@login_required
-#def nutritionist_classification(request):
- #   if request.user.userprofile.role != 'nutritionist':
-  #      messages.error(request, "Access restricted to nutritionists.")
-   #     return redirect('accounts:home')
-    #return render(request, 'nutritionist/classification.html')
-
 
 @never_cache
 @login_required
@@ -499,7 +498,33 @@ def nutritionist_collaboration(request):
     if request.user.userprofile.role != 'nutritionist':
         messages.error(request, "Access restricted to nutritionists.")
         return redirect('accounts:home')
-    return render(request, 'nutritionist/collaboration.html')
+
+    # Tous les messages reçus par le nutritionniste (y compris les réponses)
+    received_messages = NutritionMessage.objects.filter(
+        recipient=request.user,
+        deleted_by_recipient=False)\
+        .select_related('sender', 'replied_to')\
+        .order_by('-sent_at')
+
+    # Grouper les conversations (messages originaux + leurs réponses)
+    conversations = []
+    seen = set()
+    for msg in received_messages:
+        if msg.pk in seen:
+            continue
+        thread = NutritionMessage.objects.filter(
+            models_Q(pk=msg.pk) | models_Q(replied_to=msg) | models_Q(replied_to__replied_to=msg)
+        ).select_related('sender').order_by('sent_at')
+        conversations.append({
+            'original': msg,
+            'thread': thread
+        })
+        seen.update([m.pk for m in thread])
+
+    context = {
+        'conversations': conversations,
+    }
+    return render(request, 'nutritionist/collaboration.html', context)
 
 
 # ====================== PUBLIC VIEWS ======================
@@ -713,48 +738,47 @@ def toggle_favorite(request, pk):
         # Fallback
         return redirect('accounts:public_recipes')
 
-@never_cache
-@login_required
-def nutritionist_chatbot(request):
-    if request.user.userprofile.role != 'nutritionist':
-        messages.error(request, "Access restricted to nutritionists.")
-        return redirect('accounts:home')
+#@never_cache
+#@login_required
+#def nutritionist_chatbot(request):
+ #   if request.user.userprofile.role != 'nutritionist':
+  #      messages.error(request, "Access restricted to nutritionists.")
+   #     return redirect('accounts:home')
+#    api_key = settings.GEMINI_API_KEY
+ #   if not api_key:
+  #      messages.error(request, "Gemini API key missing.")
+   #     return render(request, 'nutritionist/chatbot.html', {'chat_history': []})
 
-    api_key = settings.GEMINI_API_KEY
-    if not api_key:
-        messages.error(request, "Gemini API key missing.")
-        return render(request, 'nutritionist/chatbot.html', {'chat_history': []})
-
-    genai.configure(api_key=api_key)
+#    genai.configure(api_key=api_key)
 
     # Current working model in December 2025
-    model = genai.GenerativeModel("gemini-2.5-flash")
+ #   model = genai.GenerativeModel("gemini-2.5-flash")
 
-    chat_history = request.session.get('chat_history', [])
+  #  chat_history = request.session.get('chat_history', [])
 
-    if request.method == 'POST':
-        user_message = request.POST.get('message', '').strip()
-        if user_message:
-            prompt = f"""
-            You are Dr. {request.user.username}, a Tunisian nutritionist expert in traditional cuisine.
-            Answer in French or Tunisian Arabic based on the question's language.
-            Be precise, detailed, and give practical advice.
-            Question: {user_message}
-            """
+   # if request.method == 'POST':
+    #    user_message = request.POST.get('message', '').strip()
+     #   if user_message:
+      #      prompt = f"""
+       #     You are Dr. {request.user.username}, a Tunisian nutritionist expert in traditional cuisine.
+        #    Answer in French or Tunisian Arabic based on the question's language.
+         #   Be precise, detailed, and give practical advice.
+          #  Question: {user_message}
+           # """
 
-            try:
-                response = model.generate_content(prompt)
-                bot_reply = response.text.strip() if response.text else "I couldn't generate a response."
+            #try:
+             #   response = model.generate_content(prompt)
+              #  bot_reply = response.text.strip() if response.text else "I couldn't generate a response."
 
-                chat_history.append({'user': user_message, 'bot': bot_reply})
-            except Exception as e:
-                bot_reply = f"Technical error: {str(e)[:100]}..."
-                chat_history.append({'user': user_message, 'bot': bot_reply})
+     #           chat_history.append({'user': user_message, 'bot': bot_reply})
+      #      except Exception as e:
+       #         bot_reply = f"Technical error: {str(e)[:100]}..."
+        #        chat_history.append({'user': user_message, 'bot': bot_reply})
 
-            request.session['chat_history'] = chat_history[-30:]
-            request.session.modified = True
+         #   request.session['chat_history'] = chat_history[-30:]
+          #  request.session.modified = True
 
-    return render(request, 'nutritionist/chatbot.html', {'chat_history': chat_history})
+#    return render(request, 'nutritionist/chatbot.html', {'chat_history': chat_history})
 
 
 
@@ -927,3 +951,244 @@ def nutritionist_sheets(request, user_id):
         'page_title': f"Nutrition Sheets by Dr. {nutritionist.username}",
     }
     return render(request, 'public/nutritionist_sheets.html', context)
+
+
+
+@never_cache
+@login_required
+def visitor_discussions(request):
+    if request.user.userprofile.role != 'visitor':
+        messages.error(request, "Access restricted to visitors.")
+        return redirect('accounts:home')
+
+    # Tous les messages envoyés par le visiteur + les réponses reçues
+    sent_messages = NutritionMessage.objects.filter(
+        sender=request.user,
+        deleted_by_sender=False,
+        ).select_related('recipient', 'replied_to')\
+        .prefetch_related('replies')\
+        .order_by('-sent_at')
+
+    # Grouper les conversations
+    conversations = []
+    seen = set()
+    for msg in sent_messages:
+        if msg.pk in seen:
+            continue
+        thread = NutritionMessage.objects.filter(
+            models_Q(pk=msg.pk) |
+            models_Q(replied_to=msg) |
+            models_Q(replied_to__replied_to=msg)
+        ).select_related('sender', 'recipient').order_by('sent_at')
+        conversations.append(thread)
+        seen.update([m.pk for m in thread])
+
+    context = {'conversations': conversations}
+    return render(request, 'visitor/discussions.html', context)
+
+
+@never_cache
+@login_required
+def send_nutrition_message(request, recipient_id):
+    recipient = get_object_or_404(User, pk=recipient_id, userprofile__role='nutritionist')
+
+    if request.method == 'POST':
+        subject = request.POST['subject']
+        message_text = request.POST['message']
+
+        NutritionMessage.objects.create(
+            sender=request.user,
+            recipient=recipient,
+            subject=subject,
+            message=message_text
+        )
+
+        
+        messages.success(request, "Message sent successfully!")
+        return redirect('accounts:recipe_detail', pk=request.POST.get('recipe_id', 1))
+
+    return redirect('accounts:home')
+
+
+@never_cache
+@login_required
+def reply_nutrition_message(request, message_id):
+    original_message = get_object_or_404(NutritionMessage, pk=message_id)
+
+    if request.user != original_message.recipient:
+        messages.error(request, "You can only reply to messages sent to you.")
+        return redirect('accounts:nutritionist_collaboration')
+
+    if request.method == 'POST':
+        message_text = request.POST['message']
+
+        reply = NutritionMessage.objects.create(
+            sender=request.user,
+            recipient=original_message.sender,
+            subject=f"RE: {original_message.subject}",
+            message=message_text,
+            replied_to=original_message
+        )
+
+        original_message.is_read = True
+        original_message.save()
+
+        
+        
+
+        messages.success(request, "Reply sent!")
+        return redirect('accounts:nutritionist_collaboration')
+
+    context = {'original_message': original_message}
+    return render(request, 'nutritionist/reply_message.html', context)
+
+@never_cache
+@login_required
+def visitor_reply_message(request, message_id):
+    original_message = get_object_or_404(NutritionMessage, pk=message_id, recipient=request.user)
+
+    if request.method == 'POST':
+        message_text = request.POST['message']
+
+        NutritionMessage.objects.create(
+            sender=request.user,
+            recipient=original_message.sender,  # Le nutritionniste
+            subject=f"RE: {original_message.subject}",
+            message=message_text,
+            replied_to=original_message
+        )
+
+        
+
+        messages.success(request, "Your reply has been sent!")
+        return redirect('accounts:visitor_discussions')
+
+    context = {'original_message': original_message}
+    return render(request, 'visitor/reply_message.html', context)
+
+
+from django.db.models import Q
+
+@never_cache
+@login_required
+def conversation_detail(request, conversation_id):
+    first_message = get_object_or_404(NutritionMessage, pk=conversation_id)
+
+    # Sécurité
+    if request.user not in [first_message.sender, first_message.recipient]:
+        messages.error(request, "You are not part of this conversation.")
+        return redirect('accounts:home')
+
+    # Récupère TOUS les messages de la conversation (premier + toutes les réponses, même imbriquées)
+    all_related_pks = [first_message.pk]
+    current = first_message
+    while current.replied_to:
+        all_related_pks.append(current.replied_to.pk)
+        current = current.replied_to
+
+    conversation_messages = NutritionMessage.objects.filter(
+        Q(pk__in=all_related_pks) | Q(replied_to__pk__in=all_related_pks)
+    ).select_related('sender').order_by('sent_at')
+
+    # Marque comme lus les messages reçus
+    conversation_messages.filter(recipient=request.user).update(is_read=True)
+
+    if request.method == 'POST':
+        message_text = request.POST.get('message', '').strip()
+        if message_text:
+            NutritionMessage.objects.create(
+                sender=request.user,
+                recipient=first_message.sender if request.user == first_message.recipient else first_message.recipient,
+                subject=first_message.subject,
+                message=message_text,
+                replied_to=first_message  # on attache toujours au premier message pour garder le thread
+            )
+            messages.success(request, "Message sent!")
+            return redirect('accounts:conversation_detail', conversation_id=first_message.pk)
+
+    context = {
+        'first_message': first_message,
+        'messages': conversation_messages,
+        'other_user': first_message.recipient if request.user == first_message.sender else first_message.sender,
+    }
+    return render(request, 'accounts/conversation_detail.html', context)
+
+@never_cache
+@login_required
+def delete_conversation(request, conversation_id):
+    first_message = get_object_or_404(NutritionMessage, pk=conversation_id)
+
+    if request.user not in [first_message.sender, first_message.recipient]:
+        messages.error(request, "You cannot delete this conversation.")
+        return redirect('accounts:home')
+
+    if request.method == 'POST':
+        # Marque comme supprimé pour l'utilisateur courant
+        if request.user == first_message.sender:
+            NutritionMessage.objects.filter(
+                models_Q(pk=first_message.pk) |
+                models_Q(replied_to=first_message) |
+                models_Q(replied_to__replied_to=first_message)
+            ).update(deleted_by_sender=True)
+        else:
+            NutritionMessage.objects.filter(
+                models_Q(pk=first_message.pk) |
+                models_Q(replied_to=first_message) |
+                models_Q(replied_to__replied_to=first_message)
+            ).update(deleted_by_recipient=True)
+
+        messages.success(request, "Conversation deleted from your view.")
+        if request.user.userprofile.role == 'visitor':
+            return redirect('accounts:visitor_discussions')
+        else:
+            return redirect('accounts:nutritionist_collaboration')
+
+    context = {
+        'first_message': first_message,
+        'other_user': first_message.recipient if request.user == first_message.sender else first_message.sender,
+    }
+    return render(request, 'accounts/delete_conversation.html', context)
+
+
+def public_chatbot(request):
+    api_key = settings.GEMINI_API_KEY
+    if not api_key:
+        messages.error(request, "Chatbot temporarily unavailable.")
+        return render(request, 'public/chatbot.html', {'chat_history': []})
+
+    genai.configure(api_key=api_key)
+
+    # Modèle correct en 2026
+    model = genai.GenerativeModel("gemini-2.5-flash")
+
+    # Historique en session (fonctionne même sans login)
+    chat_history = request.session.get('chat_history', [])
+
+    if request.method == 'POST':
+        user_message = request.POST.get('message', '').strip()
+        if user_message:
+            # Prompt adapté selon le rôle
+            if request.user.is_authenticated and request.user.userprofile.role == 'nutritionist':
+                role_prompt = f"You are Dr. {request.user.username}, a Tunisian nutrition expert."
+            else:
+                role_prompt = "You are a friendly Tunisian nutrition expert."
+
+            prompt = f"""
+            {role_prompt}
+            Answer in French or Tunisian Arabic if the question is in Arabic.
+            Be clear, helpful, and give practical advice.
+            Question: {user_message}
+            """
+
+            try:
+                response = model.generate_content(prompt)
+                bot_reply = response.text.strip() if response.text else "Désolé, je n'ai pas compris. Reformule ta question !"
+            except Exception as e:
+                print(f"Gemini error: {e}")
+                bot_reply = "Désolé, erreur temporaire. Réessaie dans quelques secondes !"
+
+            chat_history.append({'user': user_message, 'bot': bot_reply})
+            request.session['chat_history'] = chat_history[-30:]
+            request.session.modified = True
+
+    return render(request, 'public/chatbot.html', {'chat_history': chat_history})

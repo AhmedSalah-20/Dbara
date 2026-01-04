@@ -1,0 +1,49 @@
+<!-- templates/public/chatbot.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Health AI Chatbot - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0">🤖 Health AI Chatbot</h3>
+                    <p class="mb-0">Ask any nutrition question – instant advice!</p>
+                </div>
+                <div class="card-body" style="height: 60vh; overflow-y: auto; background:#f8f9fa;">
+                    {% if chat_history %}
+                        {% for exchange in chat_history %}
+                        <div class="mb-3">
+                            <div class="text-end mb-2">
+                                <div class="d-inline-block bg-primary text-white p-3 rounded-3" style="max-width:80%;">
+                                    {{ exchange.user }}
+                                </div>
+                            </div>
+                            <div class="text-start">
+                                <div class="d-inline-block bg-light p-3 rounded-3 border" style="max-width:80%;">
+                                    {{ exchange.bot|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-center text-muted mt-5">Start by asking a question below!</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" name="message" class="form-control" placeholder="Type your question..." required autocomplete="off">
+                            <button type="submit" class="btn btn-success">Send</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

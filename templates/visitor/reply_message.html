@@ -1,0 +1,34 @@
+<!-- templates/visitor/reply_message.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Reply to Nutritionist - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white text-center">
+                    <h4>Reply to Dr. {{ original_message.sender.username }}</h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="bg-light p-3 rounded mb-4">
+                        <p class="mb-0">{{ original_message.message|linebreaks }}</p>
+                        <small class="text-muted">— Dr. {{ original_message.sender.username }}</small>
+                    </div>
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <textarea name="message" class="form-control" rows="6" placeholder="Write your reply..." required></textarea>
+                        <div class="text-end mt-3">
+                            <a href="{% url 'accounts:visitor_discussions' %}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-success">Send Reply</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

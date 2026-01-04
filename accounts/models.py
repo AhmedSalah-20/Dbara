@@ -181,3 +181,25 @@ class NutritionFactSheet(models.Model):
         ordering = ['-created_at']
         verbose_name = "Nutrition Fact Sheet"
         verbose_name_plural = "Nutrition Fact Sheets"
+
+
+
+class NutritionMessage(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_nutrition_messages')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_nutrition_messages')
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    replied_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL, related_name='replies')
+
+
+# Nouveaux champs pour suppression personnelle
+    deleted_by_sender = models.BooleanField(default=False)
+    deleted_by_recipient = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.sender} → {self.recipient}: {self.subject}"
+
+    class Meta:
+        ordering = ['-sent_at']

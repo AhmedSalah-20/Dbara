@@ -58,7 +58,7 @@
                         </div>
                     </div>
 
-                    <!-- Favorite Button – visible ONLY if NOT already in favorites and user is visitor -->
+                    <!-- Favorite Button -->
                     {% if user.is_authenticated and user.userprofile.role == 'visitor' %}
                         {% if recipe not in user.favorites.all %}
                             <form method="POST" action="{% url 'accounts:toggle_favorite' recipe.pk %}" class="mb-4">
@@ -142,58 +142,92 @@
         </div>
     </div>
 
-
     <!-- Nutritional Analysis by Nutritionist -->
-{% if recipe.analysis %}
-<div id="nutrition-analysis" class="row mt-5">
-    <div class="col-12">
-        <div class="card shadow-lg border-0">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0">🥗 Nutritional Analysis by Dr. {{ recipe.analysis.nutritionist.username }}</h4>
-                <small>Analyzed on {{ recipe.analysis.analyzed_at|date:"d M Y" }}</small>
-            </div>
-            <div class="card-body">
-                <div class="row text-center mb-4">
-                    <div class="col-6 col-md-3">
-                        <h5 class="fw-bold text-primary">{{ recipe.analysis.calories }} kcal</h5>
-                        <small>Calories per serving</small>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <h5 class="fw-bold text-info">{{ recipe.analysis.proteins }}g</h5>
-                        <small>Proteins</small>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <h5 class="fw-bold text-warning">{{ recipe.analysis.carbs }}g</h5>
-                        <small>Carbs</small>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <h5 class="fw-bold text-danger">{{ recipe.analysis.fats }}g</h5>
-                        <small>Fats</small>
-                    </div>
-                </div>
+    {% if recipe.analysis %}
+    <div id="nutrition-analysis" class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-0">🥗 Nutritional Analysis by Dr. {{ recipe.analysis.nutritionist.username }}</h4>
+        <small>Analyzed on {{ recipe.analysis.analyzed_at|date:"d M Y" }}</small>
+    </div>
 
-                <div class="text-center mb-4">
-                    <h4 class="fw-bold">
-                        Health Rating: 
-                        <span class="text-warning fs-3">
-                            {% for i in "12345" %}
-                                {% if forloop.counter <= recipe.analysis.health_rating %}⭐{% else %}☆{% endif %}
-                            {% endfor %}
-                        </span>
-                    </h4>
-                </div>
+    <!-- Bouton Contact – visible UNIQUEMENT pour les Visiteurs connectés -->
+    {% if user.is_authenticated and user.userprofile.role == 'visitor' %}
+        <button type="button" class="btn btn-info btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#contactNutritionistModal">
+            💬 Contact the Nutritionist
+        </button>
+    {% elif not user.is_authenticated %}
+        <small class="text-light opacity-75">Login to ask a question</small>
+    {% endif %}
+</div>
+                <div class="card-body">
+                    <div class="row text-center mb-4">
+                        <div class="col-6 col-md-3">
+                            <h5 class="fw-bold text-primary">{{ recipe.analysis.calories|default:"N/A" }} kcal</h5>
+                            <small>Calories per serving</small>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h5 class="fw-bold text-info">{{ recipe.analysis.proteins|default:"N/A" }}g</h5>
+                            <small>Proteins</small>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h5 class="fw-bold text-warning">{{ recipe.analysis.carbs|default:"N/A" }}g</h5>
+                            <small>Carbs</small>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <h5 class="fw-bold text-danger">{{ recipe.analysis.fats|default:"N/A" }}g</h5>
+                            <small>Fats</small>
+                        </div>
+                    </div>
 
-                {% if recipe.analysis.comment %}
-                <div class="p-4 bg-light rounded-3">
-                    <p class="fst-italic mb-2">"{{ recipe.analysis.comment }}"</p>
-                    <small class="text-muted float-end">— Dr. {{ recipe.analysis.nutritionist.username }}</small>
+                    {% if recipe.analysis.comment %}
+                    <div class="p-4 bg-light rounded-3">
+                        <p class="fst-italic mb-2">"{{ recipe.analysis.comment }}"</p>
+                        <small class="text-muted float-end">— Dr. {{ recipe.analysis.nutritionist.username }}</small>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
-</div>
-{% endif %}
+    {% endif %}
+
+    <!-- Modal to contact the nutritionist -->
+    {% if recipe.analysis and user.is_authenticated %}
+    <div class="modal fade" id="contactNutritionistModal" tabindex="-1" aria-labelledby="contactNutritionistModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="POST" action="{% url 'accounts:send_nutrition_message' recipe.analysis.nutritionist.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="recipe_id" value="{{ recipe.pk }}">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="contactNutritionistModalLabel">
+                            💬 Contact Dr. {{ recipe.analysis.nutritionist.username }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Subject</label>
+                            <input type="text" name="subject" class="form-control" placeholder="e.g. Question about this recipe" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Your Message</label>
+                            <textarea name="message" class="form-control" rows="5" placeholder="Write your question or comment..." required></textarea>
+                        </div>
+                        <small class="text-muted">Your message will be sent directly to the nutritionist.</small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Ratings & Reviews -->
     <div id="ratings-section" class="row mt-5">
@@ -281,56 +315,6 @@
                                         <a href="{% url 'accounts:recipe_detail' recipe.pk %}?parent={{ comment.pk }}#comment-form" class="btn btn-sm btn-outline-primary">Reply</a>
                                     {% endif %}
                                 </div>
-
-
-
-                                <!-- Nutritional Analysis -->
-{% if recipe.analysis %}
-<div id="analysis-section" class="row mt-5">
-    <div class="col-12">
-        <div class="card shadow-lg border-success">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0">🥗 Nutritional Analysis by Dr. {{ recipe.analysis.nutritionist.username }}</h4>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-md-3">
-                        <h5 class="fw-bold">{{ recipe.analysis.calories }} kcal</h5>
-                        <small>Calories</small>
-                    </div>
-                    <div class="col-md-3">
-                        <h5 class="fw-bold">{{ recipe.analysis.proteins }}g</h5>
-                        <small>Proteins</small>
-                    </div>
-                    <div class="col-md-3">
-                        <h5 class="fw-bold">{{ recipe.analysis.carbs }}g</h5>
-                        <small>Carbs</small>
-                    </div>
-                    <div class="col-md-3">
-                        <h5 class="fw-bold">{{ recipe.analysis.fats }}g</h5>
-                        <small>Fats</small>
-                    </div>
-                </div>
-                <div class="mt-4 text-center">
-                    <h4>Health Rating: 
-                        <span class="text-warning">
-                            {% for i in "12345" %}
-                                {% if forloop.counter <= recipe.analysis.health_rating %}⭐{% else %}☆{% endif %}
-                            {% endfor %}
-                        </span>
-                    </h4>
-                </div>
-                {% if recipe.analysis.comment %}
-                <div class="mt-4 p-3 bg-light rounded">
-                    <p class="fst-italic">"{{ recipe.analysis.comment }}"</p>
-                    <small class="text-muted">— Dr. {{ recipe.analysis.nutritionist.username }}</small>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
 
                                 <!-- Replies -->
                                 {% if comment.replies.exists %}

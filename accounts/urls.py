@@ -22,8 +22,8 @@ urlpatterns = [
     path('nutritionist/dashboard/', views.nutritionist_dashboard, name='nutritionist_dashboard'),
     path('nutritionist/analyze/', views.nutritionist_analyze, name='nutritionist_analyze'),
     path('nutritionist/fiches/', views.nutritionist_fiches, name='nutritionist_fiches'),
-   # path('nutritionist/classification/', views.nutritionist_classification, name='nutritionist_classification'),
-    path('nutritionist/chatbot/', views.nutritionist_chatbot, name='nutritionist_chatbot'),
+   
+    #path('nutritionist/chatbot/', views.nutritionist_chatbot, name='nutritionist_chatbot'),
     path('nutritionist/stats/', views.nutritionist_stats, name='nutritionist_stats'),
     path('nutritionist/collaboration/', views.nutritionist_collaboration, name='nutritionist_collaboration'),
 
@@ -46,7 +46,7 @@ path('add_comment/<int:pk>/', views.add_comment, name='add_comment'),
 path('add_rating/<int:pk>/', views.add_rating, name='add_rating'),
 path('toggle_favorite/<int:pk>/', views.toggle_favorite, name='toggle_favorite'),
 path('favorites/', views.favorites, name='favorites'),
-path('chatbot/', views.chatbot, name='chatbot'),
+
 
 path('mark-notifications-read/', views.mark_notifications_read, name='mark_notifications_read'),
 
@@ -68,4 +68,15 @@ path('nutrition-library/', views.public_nutrition_library, name='public_nutritio
 path('nutrition-sheet/<int:pk>/', views.public_nutrition_sheet_detail, name='public_nutrition_sheet_detail'),
 path('nutritionist/<int:user_id>/sheets/', views.nutritionist_sheets, name='nutritionist_sheets'),
 
+
+path('discussions/', views.visitor_discussions, name='visitor_discussions'),
+path('send-message/<int:recipient_id>/', views.send_nutrition_message, name='send_nutrition_message'),
+path('reply-message/<int:message_id>/', views.reply_nutrition_message, name='reply_nutrition_message'),
+path('visitor-reply/<int:message_id>/', views.visitor_reply_message, name='visitor_reply_message'),
+
+path('conversation/<int:conversation_id>/', views.conversation_detail, name='conversation_detail'),
+
+path('conversation/<int:conversation_id>/delete/', views.delete_conversation, name='delete_conversation'),
+
+path('chatbot/', views.public_chatbot, name='public_chatbot'),
 ]

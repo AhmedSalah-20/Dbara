@@ -1,0 +1,38 @@
+<!-- templates/accounts/delete_conversation.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Delete Conversation - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-danger">
+                <div class="card-header bg-danger text-white text-center">
+                    <h3>Delete Conversation</h3>
+                </div>
+                <div class="card-body text-center p-5">
+                    <i class="display-1 text-danger mb-4">🗑️</i>
+                    <h4>Are you sure you want to delete this conversation?</h4>
+                    <p class="lead text-muted">
+                        With <strong>Dr. {{ other_user.username }}</strong><br>
+                        Subject: "{{ first_message.subject }}"
+                    </p>
+                    <p class="text-danger"><strong>This action is permanent and cannot be undone.</strong></p>
+
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg px-5">
+                            Yes, Delete Forever
+                        </button>
+                    </form>
+                    <a href="{% url 'accounts:conversation_detail' first_message.pk %}" class="btn btn-secondary btn-lg px-5 ms-3">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!-- templates/nutritionist/reply_message.html -->
+{% extends 'base/base.html' %}
+
+{% block title %}Reply to Message - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="display-5 fw-bold text-center mb-5" style="color:#38ef7d;">Reply to Message</h1>
+
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <p><strong>Original message from {{ original_message.sender.username }}:</strong></p>
+            <p class="border p-3 bg-light rounded">{{ original_message.message }}</p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Your Reply</label>
+                    <textarea name="message" class="form-control" rows="6" required></textarea>
+                </div>
+                <div class="text-end">
+                    <a href="{% url 'accounts:nutritionist_collaboration' %}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-success">Send Reply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

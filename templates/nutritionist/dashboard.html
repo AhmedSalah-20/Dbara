@@ -2,132 +2,173 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Tableau de bord Nutritionniste - {{ user.username }}{% endblock %}
+{% block title %}Nutritionist Dashboard - Dr. {{ user.username }} - Dbara{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <!-- Header -->
-    <div class="text-center mb-5 p-5 rounded-3 shadow-lg text-white"
-     style="background: linear-gradient(135deg, #11998e, #38ef7d);">
-    <h1 class="display-4 fw-bold">
-        Bienvenue Dr. <span style="color:#ffd700;">{{ user.username }}</span> 🥗
-    </h1>
-    <p class="lead fs-3">Espace Nutritionniste – Analyse & Conseils Santé</p>
-</div>
-
-    <!-- Stats Cards -->
-    <div class="row g-4 mb-5 text-center">
-        <div class="col-md-3">
-            <div class="card bg-info text-white shadow h-100">
-                <div class="card-body">
-                    <h2 class="display-5 fw-bold">{{ total_recipes }}</h2>
-                    <p class="fs-4">Recettes analysées</p>
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-5 mb-lg-0">
+            <div class="card shadow-lg border-0 sticky-top" style="top: 20px;">
+                <div class="card-header bg-black text-warning text-center py-4">
+                    <h5 class="mb-0 fw-bold">Nutritionist Menu</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'accounts:nutritionist_dashboard' %}" class="list-group-item list-group-item-action active bg-primary text-white">
+                        🥗 My Dashboard
+                    </a>
+                    <a href="{% url 'accounts:nutritionist_analyze' %}" class="list-group-item list-group-item-action">
+                        📊 Analyze Recipe
+                    </a>
+                    <a href="{% url 'accounts:nutritionist_fiches' %}" class="list-group-item list-group-item-action">
+                        📋 Nutrition Facts
+                    </a>
+                    <a href="{% url 'accounts:nutritionist_classification' %}" class="list-group-item list-group-item-action">
+                        ⭐ Health Rating
+                    </a>
+                    <a href="{% url 'accounts:nutritionist_chatbot' %}" class="list-group-item list-group-item-action">
+                        🤖 Health AI Chat
+                    </a>
+                    <a href="{% url 'accounts:nutritionist_stats' %}" class="list-group-item list-group-item-action">
+                        📈 Statistics
+                    </a>
+                    <a href="{% url 'accounts:nutritionist_collaboration' %}" class="list-group-item list-group-item-action">
+                        🤝 Collaboration
+                    </a>
+                    <a href="{% url 'accounts:notifications' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        🔔 Notifications
+                        {% if unread_notifications_count > 0 %}
+                            <span class="badge bg-danger rounded-pill">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </a>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white shadow h-100">
-                <div class="card-body">
-                    <h2 class="display-5 fw-bold">{{ healthy_recipes }}</h2>
-                    <p class="fs-4">Équilibrées</p>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <!-- Header -->
+            <div class="text-center mb-5 p-5 rounded-4 shadow-lg text-white"
+                 style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                <h1 class="display-4 fw-bold">
+                    Welcome Dr. <span style="color:#ffd700;">{{ user.username }}</span> 🥗
+                </h1>
+                <p class="lead fs-3">Nutritionist Space – Health Analysis & Advice</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row g-4 mb-5 text-center">
+                <div class="col-md-3">
+                    <div class="card bg-info text-white shadow h-100 hover-lift">
+                        <div class="card-body p-4">
+                            <h2 class="display-5 fw-bold">{{ analyzed_recipes|default:"0" }}</h2>
+                            <p class="fs-4 mb-0">Recipes Analyzed</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white shadow h-100 hover-lift">
+                        <div class="card-body p-4">
+                            <h2 class="display-5 fw-bold">{{ healthy_recipes|default:"0" }}</h2>
+                            <p class="fs-4 mb-0">Healthy</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-dark shadow h-100 hover-lift">
+                        <div class="card-body p-4">
+                            <h2 class="display-5 fw-bold">{{ moderate_recipes|default:"0" }}</h2>
+                            <p class="fs-4 mb-0">Moderate</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white shadow h-100 hover-lift">
+                        <div class="card-body p-4">
+                            <h2 class="display-5 fw-bold">{{ unhealthy_recipes|default:"0" }}</h2>
+                            <p class="fs-4 mb-0">Needs Improvement</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <a href="{% url 'accounts:nutritionist_analyze' %}" class="text-decoration-none">
+                        <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
+                            <div class="display-1 text-success mb-3">🥗</div>
+                            <h4 class="fw-bold">Analyze a Recipe</h4>
+                            <p class="text-muted">Calculate calories, proteins, carbs, fats</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="{% url 'accounts:nutritionist_fiches' %}" class="text-decoration-none">
+                        <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
+                            <div class="display-1 text-primary mb-3">📊</div>
+                            <h4 class="fw-bold">Nutrition Facts</h4>
+                            <p class="text-muted">Create & manage detailed nutrition sheets</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="{% url 'accounts:nutritionist_classification' %}" class="text-decoration-none">
+                        <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
+                            <div class="display-1 text-warning mb-3">⭐</div>
+                            <h4 class="fw-bold">Health Rating</h4>
+                            <p class="text-muted">Rate recipes & suggest healthier alternatives</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="{% url 'accounts:nutritionist_chatbot' %}" class="text-decoration-none">
+                        <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
+                            <div class="display-1 text-info mb-3">🤖</div>
+                            <h4 class="fw-bold">Health AI Chat</h4>
+                            <p class="text-muted">Answer visitors' nutrition questions</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="{% url 'accounts:nutritionist_stats' %}" class="text-decoration-none">
+                        <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
+                            <div class="display-1 text-danger mb-3">📈</div>
+                            <h4 class="fw-bold">Statistics & Tracking</h4>
+                            <p class="text-muted">Platform nutrition trends</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <a href="{% url 'accounts:nutritionist_collaboration' %}" class="text-decoration-none">
+                        <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
+                            <div class="display-1 text-purple mb-3">🤝</div>
+                            <h4 class="fw-bold">Collaboration</h4>
+                            <p class="text-muted">Discuss with chefs & admin</p>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-dark shadow h-100">
-                <div class="card-body">
-                    <h2 class="display-5 fw-bold">{{ moderate_recipes }}</h2>
-                    <p class="fs-4">À modérer</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-danger text-white shadow h-100">
-                <div class="card-body">
-                    <h2 class="display-5 fw-bold">{{ unhealthy_recipes }}</h2>
-                    <p class="fs-4">À améliorer</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Fonctionnalités Grid -->
-    <div class="row g-4">
-
-        <!-- 1. Analyser une recette -->
-        <div class="col-md-6 col-lg-4">
-            <a href="{% url 'accounts:nutritionist_analyze' %}" class="text-decoration-none">
-                <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
-                    <div class="display-1 text-success mb-3">🥗</div>
-                    <h4 class="fw-bold">Analyser une recette</h4>
-                    <p class="text-muted">Calculer calories, protéines, glucides, lipides</p>
-                </div>
-            </a>
-        </div>
-
-        <!-- 2. Fiches nutritionnelles -->
-        <div class="col-md-6 col-lg-4">
-            <a href="{% url 'accounts:nutritionist_fiches' %}" class="text-decoration-none">
-                <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
-                    <div class="display-1 text-primary mb-3">📊</div>
-                    <h4 class="fw-bold">Fiches nutritionnelles</h4>
-                    <p class="text-muted">Créer & gérer les fiches détaillées</p>
-                </div>
-            </a>
-        </div>
-
-        <!-- 3. Classement santé -->
-        <div class="col-md-6 col-lg-4">
-            <a href="{% url 'accounts:nutritionist_classification' %}" class="text-decoration-none">
-                <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
-                    <div class="display-1 text-warning mb-3">⭐</div>
-                    <h4 class="fw-bold">Classement santé</h4>
-                    <p class="text-muted">Catégoriser & suggérer alternatives</p>
-                </div>
-            </a>
-        </div>
-
-        <!-- 4. Chatbot IA Santé -->
-        <div class="col-md-6 col-lg-4">
-            <a href="{% url 'accounts:nutritionist_chatbot' %}" class="text-decoration-none">
-                <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
-                    <div class="display-1 text-info mb-3">🤖</div>
-                    <h4 class="fw-bold">Chatbot Santé IA</h4>
-                    <p class="text-muted">Répondre aux questions des visiteurs</p>
-                </div>
-            </a>
-        </div>
-
-        <!-- 5. Statistiques -->
-        <div class="col-md-6 col-lg-4">
-            <a href="{% url 'accounts:nutritionist_stats' %}" class="text-decoration-none">
-                <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
-                    <div class="display-1 text-danger mb-3">📈</div>
-                    <h4 class="fw-bold">Statistiques & Suivi</h4>
-                    <p class="text-muted">Évolution nutritionnelle de la plateforme</p>
-                </div>
-            </a>
-        </div>
-
-        <!-- 6. Collaboration -->
-        <div class="col-md-6 col-lg-4">
-            <a href="{% url 'accounts:nutritionist_collaboration' %}" class="text-decoration-none">
-                <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
-                    <div class="display-1 text-purple mb-3">🤝</div>
-                    <h4 class="fw-bold">Collaboration</h4>
-                    <p class="text-muted">Discuter avec les chefs & admin</p>
-                </div>
-            </a>
-        </div>
-
     </div>
 </div>
 
 <style>
-.hover-lift:hover {
-    transform: translateY(-10px);
-    transition: 0.3s;
-}
-.text-purple { color: #9c27b0; }
+    .hover-lift {
+        transition: all 0.4s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+    }
+    .text-purple { color: #9c27b0; }
+    body {
+        background-color: #f8f9fa !important;
+    }
 </style>
 {% endblock %}

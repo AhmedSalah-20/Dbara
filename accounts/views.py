@@ -210,10 +210,24 @@ def nutritionist_dashboard(request):
     if request.user.userprofile.role != 'nutritionist':
         messages.error(request, "Access restricted to nutritionists.")
         return redirect('accounts:home')
+    
+    # Stats (à adapter selon tes modèles futurs, pour l'instant exemple)
+    analyzed_recipes = 0  # Remplacer par ton calcul réel plus tard
+    healthy_recipes = 0
+    moderate_recipes = 0
+    unhealthy_recipes = 0
 
-    context = {}
+    # Compte des notifications non lues pour le badge
+    unread_notifications_count = request.user.notifications.filter(is_read=False).count()
+
+    context = {
+        'analyzed_recipes': analyzed_recipes,
+        'healthy_recipes': healthy_recipes,
+        'moderate_recipes': moderate_recipes,
+        'unhealthy_recipes': unhealthy_recipes,
+        'unread_notifications_count': unread_notifications_count,
+    }
     return render(request, 'nutritionist/dashboard.html', context)
-
 
 @never_cache
 @login_required
@@ -305,9 +319,21 @@ def create_recipe(request):
             servings=request.POST['servings'],
             ingredients=request.POST.get('ingredients', ''),
             steps=request.POST.get('steps', ''),
+            is_approved=False
         )
         for file in request.FILES.getlist('images'):
             RecipeImage.objects.create(recipe=recipe, image=file)
+
+# === NOTIFICATION POUR TOUS LES NUTRITIONNISTES ===
+        from django.urls import reverse
+        nutritionists = User.objects.filter(userprofile__role='nutritionist')
+        for nut in nutritionists:
+            Notification.objects.create(
+                user=nut,
+                message=f"New recipe published by Chef {request.user.username}: '{recipe.title}' – Ready for nutritional analysis",
+                link=reverse('accounts:recipe_detail', args=[recipe.pk])
+            )
+
         messages.success(request, "Recipe created successfully!")
         return redirect('accounts:chef_dashboard')
 

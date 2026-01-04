@@ -160,3 +160,29 @@ class RecipeAnalysis(models.Model):
 
     class Meta:
         ordering = ['-analyzed_at']
+
+
+
+class NutritionFactSheet(models.Model):
+    nutritionist = models.ForeignKey(User, on_delete=models.CASCADE, related_name='nutrition_sheets')
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    # Champs nutritionnels détaillés (par 100g ou portion)
+    energy_kcal = models.DecimalField(max_digits=6, decimal_places=1, null=True, blank=True)
+    proteins = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    carbs = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    sugars = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    fats = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    saturated_fats = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    fiber = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    salt = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Nutrition Fact Sheet"
+        verbose_name_plural = "Nutrition Fact Sheets"

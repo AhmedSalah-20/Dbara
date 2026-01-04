@@ -54,6 +54,7 @@
                 <li class="nav-item"><a class="nav-link" href="{% url 'accounts:public_recipes' %}">Recipes</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'accounts:chefs_list' %}">Chefs</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'accounts:nutritionists_list' %}">Nutritionists</a></li>
+                
 
                 {% if user.is_authenticated %}
                     {% if user.is_staff or user.is_superuser %}

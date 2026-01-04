@@ -1,0 +1,53 @@
+<!-- templates/nutritionist/fiches_list.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}My Nutrition Facts - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1 class="display-5 fw-bold" style="color:#38ef7d;">My Nutrition Fact Sheets</h1>
+        <a href="{% url 'accounts:create_nutrition_sheet' %}" class="btn btn-success btn-lg">
+            ➕ Create New Sheet
+        </a>
+    </div>
+
+    {% if sheets %}
+        <div class="row g-4">
+            {% for sheet in sheets %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-lg h-100 hover-lift">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">{{ sheet.title }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">{{ sheet.description|truncatewords:20 }}</p>
+                        <small class="text-muted d-block mb-3">Created {{ sheet.created_at|date:"d M Y" }}</small>
+                        <div class="btn-group w-100">
+                            <a href="{% url 'accounts:edit_nutrition_sheet' sheet.pk %}" class="btn btn-outline-primary btn-sm flex-fill">Edit</a>
+                            <a href="{% url 'accounts:delete_nutrition_sheet' sheet.pk %}" class="btn btn-outline-danger btn-sm flex-fill"
+                               onclick="return confirm('Delete this sheet?')">Delete</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="alert alert-info">
+                <h4>You haven't created any nutrition fact sheets yet</h4>
+                <p>Start by creating your first detailed nutrition sheet!</p>
+                <a href="{% url 'accounts:create_nutrition_sheet' %}" class="btn btn-success btn-lg mt-3">
+                    ➕ Create First Sheet
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .hover-lift:hover { transform: translateY(-10px); transition: 0.3s; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+</style>
+{% endblock %}

@@ -1,0 +1,67 @@
+<!-- templates/public/nutrition_sheet_detail.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white">
+                    <h1 class="display-5 mb-0">{{ sheet.title }}</h1>
+                    <p class="mb-0">By Dr. {{ sheet.nutritionist.username }} • {{ sheet.created_at|date:"d M Y" }}</p>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ sheet.description }}</p>
+
+                    <hr class="my-5">
+
+                    <h3 class="fw-bold text-success mb-4">Nutritional Values (per 100g)</h3>
+                    <div class="row text-center">
+                        <div class="col-6 col-md-4 mb-4">
+                            <h4 class="fw-bold text-primary">{{ sheet.energy_kcal|default:"N/A" }} kcal</h4>
+                            <small>Energy</small>
+                        </div>
+                        <div class="col-6 col-md-4 mb-4">
+                            <h4 class="fw-bold text-info">{{ sheet.proteins|default:"N/A" }}g</h4>
+                            <small>Proteins</small>
+                        </div>
+                        <div class="col-6 col-md-4 mb-4">
+                            <h4 class="fw-bold text-warning">{{ sheet.carbs|default:"N/A" }}g</h4>
+                            <small>Carbohydrates</small>
+                        </div>
+                        <div class="col-6 col-md-4 mb-4">
+                            <h4 class="fw-bold">{{ sheet.sugars|default:"N/A" }}g</h4>
+                            <small>of which Sugars</small>
+                        </div>
+                        <div class="col-6 col-md-4 mb-4">
+                            <h4 class="fw-bold text-danger">{{ sheet.fats|default:"N/A" }}g</h4>
+                            <small>Fats</small>
+                        </div>
+                        <div class="col-6 col-md-4 mb-4">
+                            <h4 class="fw-bold">{{ sheet.saturated_fats|default:"N/A" }}g</h4>
+                            <small>of which Saturated</small>
+                        </div>
+                        <div class="col-6 col-md-4 mb-4">
+                            <h4 class="fw-bold text-success">{{ sheet.fiber|default:"N/A" }}g</h4>
+                            <small>Fiber</small>
+                        </div>
+                        <div class="col-6 col-md-4 mb-4">
+                            <h4 class="fw-bold">{{ sheet.salt|default:"N/A" }}g</h4>
+                            <small>Salt</small>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-5">
+                        <a href="{% url 'accounts:public_nutrition_library' %}" class="btn btn-outline-success btn-lg">
+                            ← Back to Nutrition Library
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

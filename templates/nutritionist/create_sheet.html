@@ -1,0 +1,76 @@
+<!-- templates/nutritionist/create_sheet.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}{% if sheet %}Edit{% else %}Create{% endif %} Nutrition Fact Sheet - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="display-5 fw-bold text-center mb-5" style="color:#38ef7d;">
+        {% if sheet %}Edit{% else %}Create New{% endif %} Nutrition Fact Sheet
+    </h1>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Title</label>
+                            <input type="text" name="title" class="form-control form-control-lg" value="{{ sheet.title|default:'' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Description</label>
+                            <textarea name="description" class="form-control" rows="4" required>{{ sheet.description|default:'' }}</textarea>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h4 class="fw-bold mb-4 text-success">Nutritional Values (per 100g or serving)</h4>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Energy (kcal)</label>
+                                <input type="number" step="0.1" name="energy_kcal" class="form-control" value="{{ sheet.energy_kcal|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Proteins (g)</label>
+                                <input type="number" step="0.1" name="proteins" class="form-control" value="{{ sheet.proteins|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Carbohydrates (g)</label>
+                                <input type="number" step="0.1" name="carbs" class="form-control" value="{{ sheet.carbs|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Sugars (g)</label>
+                                <input type="number" step="0.1" name="sugars" class="form-control" value="{{ sheet.sugars|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Fats (g)</label>
+                                <input type="number" step="0.1" name="fats" class="form-control" value="{{ sheet.fats|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Saturated Fats (g)</label>
+                                <input type="number" step="0.1" name="saturated_fats" class="form-control" value="{{ sheet.saturated_fats|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Fiber (g)</label>
+                                <input type="number" step="0.1" name="fiber" class="form-control" value="{{ sheet.fiber|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Salt (g)</label>
+                                <input type="number" step="0.1" name="salt" class="form-control" value="{{ sheet.salt|default:'' }}">
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-5">
+                            <a href="{% url 'accounts:nutritionist_fiches' %}" class="btn btn-secondary btn-lg me-3">Cancel</a>
+                            <button type="submit" class="btn btn-success btn-lg">Save Sheet</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

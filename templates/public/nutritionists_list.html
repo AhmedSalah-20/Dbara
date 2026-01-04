@@ -15,30 +15,56 @@
         <div class="col-md-6 col-lg-4">
             <div class="card shadow-lg h-100 border-0 hover-lift">
                 <div class="text-center pt-4">
-                    <!-- Photo dynamique avec fallback générique -->
-                    {% if profile.profile_picture %}
-                        <img src="{{ profile.profile_picture.url }}" 
-                             class="rounded-circle border border-success border-4" width="120" height="120" alt="{{ profile.user.username }}">
+                    <!-- Profile picture with fallback -->
+                    {% if profile.userprofile.profile_picture %}
+                        <img src="{{ profile.userprofile.profile_picture.url }}" 
+                             class="rounded-circle border border-success border-4" 
+                             width="120" height="120" 
+                             alt="Dr. {{ profile.username }}">
                     {% else %}
                         <img src="{% static 'images/default-nutritionist.jpg' %}" 
-                             class="rounded-circle border border-success border-4" width="120" height="120" alt="Default Nutritionist">
+                             class="rounded-circle border border-success border-4" 
+                             width="120" height="120" 
+                             alt="Default Nutritionist">
                     {% endif %}
                 </div>
-                <div class="card-body text-center">
-                    <h4 class="card-title fw-bold">Dr. {{ profile.user.username }}</h4>
-                    <p class="text-success">Nutritionist Expert</p>
-                    <p class="text-muted">
-                        {{ profile.years_experience|default:"?" }} year{{ profile.years_experience|pluralize }} of experience
-                    </p>
+                <div class="card-body text-center d-flex flex-column">
+                    <h4 class="card-title fw-bold text-success">Dr. {{ profile.username }}</h4>
+                    <p class="text-success mb-1">Nutrition Expert</p>
                     <p class="text-muted small">
-                        {{ profile.region|default:"Region not specified" }}
+                        {{ profile.userprofile.years_experience|default:"?" }} year{{ profile.userprofile.years_experience|pluralize }} of experience
                     </p>
-                    {% if profile.bio %}
-                        <p class="text-muted small px-3">{{ profile.bio|truncatewords:20 }}</p>
+                    <p class="text-muted small mb-3">
+                        {{ profile.userprofile.region|default:"Region not specified" }}
+                    </p>
+                    {% if profile.userprofile.bio %}
+                        <p class="text-muted small px-3 mb-4">{{ profile.userprofile.bio|truncatewords:20 }}</p>
                     {% endif %}
-                    <a href="{% url 'accounts:nutritionist_chatbot' %}" class="btn btn-info btn-sm text-white mt-2">
-                        Ask a Question
-                    </a>
+
+                    <!-- Nutrition Fact Sheets count and button -->
+                    <div class="mt-auto">
+                        <div class="mb-3">
+                            <strong class="text-success">
+                                {{ profile.nutrition_sheets.count }} Nutrition Sheet{{ profile.nutrition_sheets.count|pluralize }}
+                            </strong>
+                        </div>
+
+                        {% if profile.nutrition_sheets.exists %}
+                            <a href="{% url 'accounts:nutritionist_sheets' profile.pk %}" 
+                               class="btn btn-success btn-sm w-100 mb-2 fw-bold">
+                                📚 View Published Sheets
+                            </a>
+                        {% else %}
+                            <button class="btn btn-outline-secondary btn-sm w-100 mb-2" disabled>
+                                No sheets yet
+                            </button>
+                        {% endif %}
+
+                        <a href="{% url 'accounts:nutritionist_chatbot' %}" 
+                           class="btn btn-info btn-sm text-white w-100">
+                            💬 Ask a Question
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -51,10 +77,10 @@
 </div>
 
 <style>
-.hover-lift:hover { 
-    transform: translateY(-10px); 
-    transition: 0.3s; 
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
+    .hover-lift:hover { 
+        transform: translateY(-10px); 
+        transition: 0.3s; 
+        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    }
 </style>
 {% endblock %}

@@ -58,4 +58,14 @@ path('notifications/', views.notifications, name='notifications'),
 path('analyze/', views.nutritionist_analyze, name='nutritionist_analyze'),
 path('analyze/<int:pk>/', views.analyze_recipe, name='analyze_recipe'),
 
+
+path('fiches/', views.nutritionist_fiches, name='nutritionist_fiches'),
+path('fiches/create/', views.create_nutrition_sheet, name='create_nutrition_sheet'),
+path('fiches/<int:pk>/edit/', views.edit_nutrition_sheet, name='edit_nutrition_sheet'),
+path('fiches/<int:pk>/delete/', views.delete_nutrition_sheet, name='delete_nutrition_sheet'),
+
+path('nutrition-library/', views.public_nutrition_library, name='public_nutrition_library'),
+path('nutrition-sheet/<int:pk>/', views.public_nutrition_sheet_detail, name='public_nutrition_sheet_detail'),
+path('nutritionist/<int:user_id>/sheets/', views.nutritionist_sheets, name='nutritionist_sheets'),
+
 ]

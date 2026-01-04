@@ -10,7 +10,7 @@ from django.db import transaction
 from django.conf import settings
 from django.core.mail import send_mail
 from django.views.decorators.cache import never_cache
-from .models import UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite, Notification, RecipeAnalysis
+from .models import UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite, Notification, RecipeAnalysis, NutritionFactSheet
 from django.urls import reverse
 import google.generativeai as genai
 from django.db.models import Avg
@@ -441,10 +441,16 @@ def chefs_list(request):
 
 
 def nutritionists_list(request):
-    nutritionists = UserProfile.objects.filter(role='nutritionist').select_related('user')
-    context = {'nutritionists': nutritionists, 'page_title': 'Our Nutritionists 🥗'}
-    return render(request, 'public/nutritionists_list.html', context)
+    # On charge les nutritionnistes via User pour avoir accès à nutrition_sheets
+    nutritionists = User.objects.filter(
+        userprofile__role='nutritionist'
+    ).select_related('userprofile').prefetch_related('nutrition_sheets')
 
+    context = {
+        'nutritionists': nutritionists,
+        'page_title': 'Our Nutritionists 🥗'
+    }
+    return render(request, 'public/nutritionists_list.html', context)
 
 def public_recipes(request):
     recipes = Recipe.objects.filter(is_approved=True).select_related('author').prefetch_related('images').order_by('-created_at')
@@ -746,3 +752,106 @@ def analyze_recipe(request, pk):
         'analysis': analysis,
     }
     return render(request, 'nutritionist/analyze_recipe.html', context)
+
+
+
+
+@never_cache
+@login_required
+def nutritionist_fiches(request):
+    if request.user.userprofile.role != 'nutritionist':
+        messages.error(request, "Access restricted to nutritionists.")
+        return redirect('accounts:home')
+
+    sheets = NutritionFactSheet.objects.filter(nutritionist=request.user)
+    context = {'sheets': sheets}
+    return render(request, 'nutritionist/fiches_list.html', context)
+
+
+@never_cache
+@login_required
+def create_nutrition_sheet(request):
+    if request.user.userprofile.role != 'nutritionist':
+        messages.error(request, "Access restricted to nutritionists.")
+        return redirect('accounts:home')
+
+    if request.method == 'POST':
+        sheet = NutritionFactSheet.objects.create(
+            nutritionist=request.user,
+            title=request.POST['title'],
+            description=request.POST['description'],
+            energy_kcal=request.POST.get('energy_kcal') or None,
+            proteins=request.POST.get('proteins') or None,
+            carbs=request.POST.get('carbs') or None,
+            sugars=request.POST.get('sugars') or None,
+            fats=request.POST.get('fats') or None,
+            saturated_fats=request.POST.get('saturated_fats') or None,
+            fiber=request.POST.get('fiber') or None,
+            salt=request.POST.get('salt') or None,
+        )
+        messages.success(request, "Nutrition fact sheet created successfully!")
+        return redirect('accounts:nutritionist_fiches')
+
+    return render(request, 'nutritionist/create_sheet.html')
+
+
+@never_cache
+@login_required
+def edit_nutrition_sheet(request, pk):
+    sheet = get_object_or_404(NutritionFactSheet, pk=pk, nutritionist=request.user)
+
+    if request.method == 'POST':
+        sheet.title = request.POST['title']
+        sheet.description = request.POST['description']
+        sheet.energy_kcal = request.POST.get('energy_kcal') or None
+        sheet.proteins = request.POST.get('proteins') or None
+        sheet.carbs = request.POST.get('carbs') or None
+        sheet.sugars = request.POST.get('sugars') or None
+        sheet.fats = request.POST.get('fats') or None
+        sheet.saturated_fats = request.POST.get('saturated_fats') or None
+        sheet.fiber = request.POST.get('fiber') or None
+        sheet.salt = request.POST.get('salt') or None
+        sheet.save()
+        messages.success(request, "Nutrition fact sheet updated successfully!")
+        return redirect('accounts:nutritionist_fiches')
+
+    context = {'sheet': sheet}  # On passe 'sheet' pour que le formulaire soit pré-rempli
+    return render(request, 'nutritionist/create_sheet.html', context)
+
+
+@never_cache
+@login_required
+def delete_nutrition_sheet(request, pk):
+    sheet = get_object_or_404(NutritionFactSheet, pk=pk, nutritionist=request.user)
+    if request.method == 'POST':
+        sheet.delete()
+        messages.success(request, "Nutrition fact sheet deleted.")
+        return redirect('accounts:nutritionist_fiches')
+    return render(request, 'nutritionist/delete_sheet.html', {'sheet': sheet})
+
+def public_nutrition_library(request):
+    sheets = NutritionFactSheet.objects.all().select_related('nutritionist')
+    context = {
+        'sheets': sheets,
+        'page_title': 'Nutrition Library',
+    }
+    return render(request, 'public/nutrition_library.html', context)
+
+
+def public_nutrition_sheet_detail(request, pk):
+    sheet = get_object_or_404(NutritionFactSheet, pk=pk)
+    context = {
+        'sheet': sheet,
+        'page_title': sheet.title,
+    }
+    return render(request, 'public/nutrition_sheet_detail.html', context)
+
+def nutritionist_sheets(request, user_id):
+    nutritionist = get_object_or_404(User, pk=user_id, userprofile__role='nutritionist')
+    sheets = NutritionFactSheet.objects.filter(nutritionist=nutritionist)
+    context = {
+        'nutritionist': nutritionist,
+        'sheets': sheets,
+        'page_title': f"Nutrition Sheets by Dr. {nutritionist.username}",
+    }
+    return render(request, 'public/nutritionist_sheets.html', context)

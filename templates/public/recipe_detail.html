@@ -148,22 +148,24 @@
         <div class="col-12">
             <div class="card shadow-lg border-0">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-    <div>
-        <h4 class="mb-0">🥗 Nutritional Analysis by Dr. {{ recipe.analysis.nutritionist.username }}</h4>
-        <small>Analyzed on {{ recipe.analysis.analyzed_at|date:"d M Y" }}</small>
-    </div>
+                    <div>
+                        <h4 class="mb-0">🥗 Nutritional Analysis by Dr. {{ recipe.analysis.nutritionist.username }}</h4>
+                        <small>Analyzed on {{ recipe.analysis.analyzed_at|date:"d M Y" }}</small>
+                    </div>
 
-    <!-- Bouton Contact – visible UNIQUEMENT pour les Visiteurs connectés -->
-    {% if user.is_authenticated and user.userprofile.role == 'visitor' %}
-        <button type="button" class="btn btn-info btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#contactNutritionistModal">
-            💬 Contact the Nutritionist
-        </button>
-    {% elif not user.is_authenticated %}
-        <small class="text-light opacity-75">Login to ask a question</small>
-    {% endif %}
-</div>
+                    <!-- Bouton Contact – visible UNIQUEMENT pour les Visiteurs connectés -->
+                    {% if user.is_authenticated and user.userprofile.role == 'visitor' %}
+                        <button type="button" class="btn btn-info btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#contactNutritionistModal">
+                            💬 Contact the Nutritionist
+                        </button>
+                    {% elif not user.is_authenticated %}
+                        <small class="text-light opacity-75">Login to ask a question</small>
+                    {% endif %}
+                </div>
+
                 <div class="card-body">
-                    <div class="row text-center mb-4">
+                    <!-- Macros -->
+                    <div class="row text-center mb-5">
                         <div class="col-6 col-md-3">
                             <h5 class="fw-bold text-primary">{{ recipe.analysis.calories|default:"N/A" }} kcal</h5>
                             <small>Calories per serving</small>
@@ -182,9 +184,29 @@
                         </div>
                     </div>
 
+                    <!-- Health Rating -->
+                    <div class="text-center mb-5">
+                        <h4 class="fw-bold mb-3">Health Rating</h4>
+                        <div class="fs-1">
+                            {% if recipe.analysis.health_rating %}
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= recipe.analysis.health_rating %}
+                                        <span class="text-warning">⭐</span>
+                                    {% else %}
+                                        <span class="text-muted">☆</span>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="fs-4 text-dark ms-3">({{ recipe.analysis.health_rating }}/5)</span>
+                            {% else %}
+                                <span class="text-muted fs-4">Not rated yet</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Commentaire du nutritionniste -->
                     {% if recipe.analysis.comment %}
-                    <div class="p-4 bg-light rounded-3">
-                        <p class="fst-italic mb-2">"{{ recipe.analysis.comment }}"</p>
+                    <div class="p-4 bg-light rounded-3 shadow-sm">
+                        <p class="fst-italic mb-3">"{{ recipe.analysis.comment }}"</p>
                         <small class="text-muted float-end">— Dr. {{ recipe.analysis.nutritionist.username }}</small>
                     </div>
                     {% endif %}
@@ -194,8 +216,8 @@
     </div>
     {% endif %}
 
-    <!-- Modal to contact the nutritionist -->
-    {% if recipe.analysis and user.is_authenticated %}
+    <!-- Modal Contact Nutritionist -->
+    {% if recipe.analysis and user.is_authenticated and user.userprofile.role == 'visitor' %}
     <div class="modal fade" id="contactNutritionistModal" tabindex="-1" aria-labelledby="contactNutritionistModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -230,6 +252,7 @@
     {% endif %}
 
     <!-- Ratings & Reviews -->
+    <!-- Ratings & Reviews -->
     <div id="ratings-section" class="row mt-5">
         <div class="col-12">
             <div class="card shadow-lg">
@@ -237,7 +260,8 @@
                     <h4 class="mb-0">Ratings & Reviews ({{ rating_count }})</h4>
                 </div>
                 <div class="card-body">
-                    {% if user.is_authenticated and user != recipe.author %}
+                    <!-- Formulaire de note – visible seulement pour Visiteurs et Chefs (pas Nutritionniste) -->
+                    {% if user.is_authenticated and user.userprofile.role != 'nutritionist' and user != recipe.author %}
                         <form method="POST" action="{% url 'accounts:add_rating' recipe.pk %}">
                             {% csrf_token %}
                             <div class="d-flex align-items-center mb-4">
@@ -254,6 +278,8 @@
                         </form>
                     {% elif user.is_authenticated and user == recipe.author %}
                         <p class="text-muted mb-4">You cannot rate your own recipe.</p>
+                    {% elif user.is_authenticated and user.userprofile.role == 'nutritionist' %}
+                        <p class="text-muted mb-4">Nutritionists cannot rate recipes.</p>
                     {% else %}
                         <p class="text-muted mb-4">Please <a href="{% url 'accounts:login' %}">login</a> to rate this recipe.</p>
                     {% endif %}
@@ -292,8 +318,7 @@
             </div>
         </div>
     </div>
-
-    <!-- Comments -->
+        <!-- Comments -->
     <div id="comments-section" class="row mt-5">
         <div class="col-12">
             <div class="card shadow-lg">
@@ -311,6 +336,7 @@
                                         <small class="text-muted"> – {{ comment.created_at|date:"d M Y à H:i" }}</small>
                                         <p class="mt-2 mb-3">{{ comment.content|linebreaks }}</p>
                                     </div>
+                                    <!-- Bouton Reply visible UNIQUEMENT pour le Chef (propriétaire) -->
                                     {% if user == recipe.author %}
                                         <a href="{% url 'accounts:recipe_detail' recipe.pk %}?parent={{ comment.pk }}#comment-form" class="btn btn-sm btn-outline-primary">Reply</a>
                                     {% endif %}
@@ -321,7 +347,12 @@
                                     <div class="ms-5 mt-3">
                                         {% for reply in comment.replies.all %}
                                         <div class="border-left border-primary ps-3 mb-3">
-                                            <strong class="text-success">{{ reply.author.username }}</strong>
+                                            <strong class="{% if reply.author == recipe.author %}text-success{% else %}text-primary{% endif %}">
+                                                {{ reply.author.username }}
+                                                {% if reply.author == recipe.author %}
+                                                    <small class="badge bg-success ms-2">Chef</small>
+                                                {% endif %}
+                                            </strong>
                                             <small class="text-muted"> – {{ reply.created_at|date:"d M Y à H:i" }}</small>
                                             <p class="mt-1">{{ reply.content|linebreaks }}</p>
                                         </div>
@@ -335,15 +366,15 @@
                         <p class="text-muted">No comments yet. Be the first!</p>
                     {% endif %}
 
-                    <!-- Comment Form -->
-                    {% if user.is_authenticated %}
+                    <!-- Formulaire de commentaire principal – visible SEULEMENT pour les Visiteurs -->
+                    {% if user.is_authenticated and user.userprofile.role == 'visitor' %}
                         <div id="comment-form" class="mt-5">
                             <form method="POST" action="{% url 'accounts:add_comment' recipe.pk %}">
                                 {% csrf_token %}
                                 {% if request.GET.parent %}
                                     <input type="hidden" name="parent" value="{{ request.GET.parent }}">
                                     <div class="alert alert-info d-flex justify-content-between align-items-center">
-                                        <span><strong>Replying to comment...</strong></span>
+                                        <span><strong>Replying to a comment...</strong></span>
                                         <a href="{% url 'accounts:recipe_detail' recipe.pk %}" class="text-danger">Cancel reply</a>
                                     </div>
                                 {% endif %}
@@ -351,6 +382,10 @@
                                 <button type="submit" class="btn btn-warning mt-3 fw-bold">Post Comment</button>
                             </form>
                         </div>
+                    {% elif user.is_authenticated and user == recipe.author %}
+                        <p class="text-muted mt-5">As the chef, you can only reply to comments.</p>
+                    {% elif user.is_authenticated and user.userprofile.role == 'nutritionist' %}
+                        <p class="text-muted mt-5">Nutritionists cannot comment on recipes.</p>
                     {% else %}
                         <p class="mt-4 text-muted">Please <a href="{% url 'accounts:login' %}">login</a> to comment.</p>
                     {% endif %}
@@ -358,5 +393,4 @@
             </div>
         </div>
     </div>
-</div>
 {% endblock %}

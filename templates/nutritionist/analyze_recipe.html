@@ -37,15 +37,17 @@
                             </div>
                         </div>
 
-                        <div class="mt-4">
-                            <label class="form-label fw-bold">Health Rating</label>
-                            <select name="health_rating" class="form-select" required>
-                                <option value="">-- Select rating --</option>
-                                {% for i in "12345" %}
-                                <option value="{{ i }}" {% if analysis.health_rating == i|add:0 %}selected{% endif %}>{{ i }} ⭐</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <div class="mb-4">
+    <label class="form-label fw-bold">Health Rating</label>
+    <select name="health_rating" class="form-select" required>
+        <option value="">-- Select a rating --</option>
+        <option value="1" {% if analysis.health_rating == 1 %}selected{% endif %}>1 ⭐ Very Poor</option>
+        <option value="2" {% if analysis.health_rating == 2 %}selected{% endif %}>2 ⭐⭐ Poor</option>
+        <option value="3" {% if analysis.health_rating == 3 %}selected{% endif %}>3 ⭐⭐⭐ Moderate</option>
+        <option value="4" {% if analysis.health_rating == 4 %}selected{% endif %}>4 ⭐⭐⭐⭐ Good</option>
+        <option value="5" {% if analysis.health_rating == 5 %}selected{% endif %}>5 ⭐⭐⭐⭐⭐ Excellent</option>
+    </select>
+</div>
 
                         <div class="mt-4">
                             <label class="form-label fw-bold">Nutritionist's Comment (optional)</label>

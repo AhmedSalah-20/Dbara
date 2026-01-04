@@ -144,17 +144,35 @@ class RecipeAnalysis(models.Model):
     recipe = models.OneToOneField(Recipe, on_delete=models.CASCADE, related_name='analysis')
     nutritionist = models.ForeignKey(User, on_delete=models.CASCADE)
     calories = models.PositiveIntegerField(null=True, blank=True)
-    proteins = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
-    carbs = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
-    fats = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
-    comment = models.TextField(blank=True)
+    proteins = models.DecimalField(max_digits=6, decimal_places=1, null=True, blank=True)  # 99999.9 max
+    carbs = models.DecimalField(max_digits=6, decimal_places=1, null=True, blank=True)
+    fats = models.DecimalField(max_digits=6, decimal_places=1, null=True, blank=True)
+
+    # AJOUT DU HEALTH RATING (1 à 5 étoiles)
+    HEALTH_RATING_CHOICES = [
+        (1, '1 ⭐ Très mauvais'),
+        (2, '2 ⭐⭐ Mauvais'),
+        (3, '3 ⭐⭐⭐ Moyen'),
+        (4, '4 ⭐⭐⭐⭐ Bon'),
+        (5, '5 ⭐⭐⭐⭐⭐ Excellent'),
+    ]
+    health_rating = models.PositiveSmallIntegerField(
+        choices=HEALTH_RATING_CHOICES,
+        null=True,
+        blank=True,
+        help_text="Évaluation globale de la santé de la recette (1 à 5 étoiles)"
+    )
+
+    comment = models.TextField(blank=True, help_text="Commentaire du nutritionniste (facultatif)")
     analyzed_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Analysis of {self.recipe.title} by {self.nutritionist.username}"
+        return f"Analyse de '{self.recipe.title}' par Dr. {self.nutritionist.username}"
 
     class Meta:
         ordering = ['-analyzed_at']
+        verbose_name = "Analyse Nutritionnelle"
+        verbose_name_plural = "Analyses Nutritionnelles"
 
 
 

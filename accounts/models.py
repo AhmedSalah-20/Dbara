@@ -143,16 +143,11 @@ class Notification(models.Model):
 class RecipeAnalysis(models.Model):
     recipe = models.OneToOneField(Recipe, on_delete=models.CASCADE, related_name='analysis')
     nutritionist = models.ForeignKey(User, on_delete=models.CASCADE)
-    calories = models.PositiveIntegerField(null=True, blank=True, help_text="Total calories per serving")
-    proteins = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, help_text="Proteins in grams")
-    carbs = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, help_text="Carbohydrates in grams")
-    fats = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, help_text="Fats in grams")
-    health_rating = models.PositiveIntegerField(
-        choices=[(i, f"{i} ⭐") for i in range(1, 6)],
-        null=True,
-        blank=True
-    )
-    comment = models.TextField(blank=True, help_text="Nutritionist's comment or advice")
+    calories = models.PositiveIntegerField(null=True, blank=True)
+    proteins = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    carbs = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    fats = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
+    comment = models.TextField(blank=True)
     analyzed_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -23,14 +23,8 @@
                     <a href="{% url 'accounts:nutritionist_fiches' %}" class="list-group-item list-group-item-action">
                         📋 Nutrition Facts
                     </a>
-                    <a href="{% url 'accounts:nutritionist_classification' %}" class="list-group-item list-group-item-action">
-                        ⭐ Health Rating
-                    </a>
                     <a href="{% url 'accounts:nutritionist_chatbot' %}" class="list-group-item list-group-item-action">
                         🤖 Health AI Chat
-                    </a>
-                    <a href="{% url 'accounts:nutritionist_stats' %}" class="list-group-item list-group-item-action">
-                        📈 Statistics
                     </a>
                     <a href="{% url 'accounts:nutritionist_collaboration' %}" class="list-group-item list-group-item-action">
                         🤝 Collaboration
@@ -56,12 +50,12 @@
                 <p class="lead fs-3">Nutritionist Space – Health Analysis & Advice</p>
             </div>
 
-            <!-- Stats Cards -->
+            <!-- Statistics Cards -->
             <div class="row g-4 mb-5 text-center">
                 <div class="col-md-3">
                     <div class="card bg-info text-white shadow h-100 hover-lift">
                         <div class="card-body p-4">
-                            <h2 class="display-5 fw-bold">{{ analyzed_recipes|default:"0" }}</h2>
+                            <h2 class="display-5 fw-bold">{{ analyzed_recipes_count|default:"0" }}</h2>
                             <p class="fs-4 mb-0">Recipes Analyzed</p>
                         </div>
                     </div>
@@ -69,28 +63,74 @@
                 <div class="col-md-3">
                     <div class="card bg-success text-white shadow h-100 hover-lift">
                         <div class="card-body p-4">
-                            <h2 class="display-5 fw-bold">{{ healthy_recipes|default:"0" }}</h2>
-                            <p class="fs-4 mb-0">Healthy</p>
+                            <h2 class="display-5 fw-bold">{{ sheets_count|default:"0" }}</h2>
+                            <p class="fs-4 mb-0">Nutrition Sheets</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card bg-warning text-dark shadow h-100 hover-lift">
                         <div class="card-body p-4">
-                            <h2 class="display-5 fw-bold">{{ moderate_recipes|default:"0" }}</h2>
-                            <p class="fs-4 mb-0">Moderate</p>
+                            <h2 class="display-5 fw-bold">{{ healthy_count|default:"0" }}</h2>
+                            <p class="fs-4 mb-0">Healthy</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card bg-danger text-white shadow h-100 hover-lift">
                         <div class="card-body p-4">
-                            <h2 class="display-5 fw-bold">{{ unhealthy_recipes|default:"0" }}</h2>
+                            <h2 class="display-5 fw-bold">{{ improvement_count|default:"0" }}</h2>
                             <p class="fs-4 mb-0">Needs Improvement</p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Monthly Analysis Chart -->
+            {% if chart_months %}
+            <div class="card shadow-lg mb-5">
+                <div class="card-header bg-dark text-success">
+                    <h4 class="mb-0">Your Analysis Activity (Last 6 Months)</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="analysisChart" height="100"></canvas>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                const ctx = document.getElementById('analysisChart').getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: {{ chart_months|safe }},
+                        datasets: [{
+                            label: 'Recipes Analyzed',
+                            data: {{ chart_counts|safe }},
+                            backgroundColor: '#38ef7d',
+                            borderColor: '#11998e',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            </script>
+            {% else %}
+            <div class="alert alert-info text-center mb-5">
+                <p class="lead">No analysis data yet. Start analyzing recipes to see your progress!</p>
+            </div>
+            {% endif %}
 
             <!-- Features Grid -->
             <div class="row g-4">
@@ -115,31 +155,11 @@
                 </div>
 
                 <div class="col-md-6 col-lg-4">
-                    <a href="{% url 'accounts:nutritionist_classification' %}" class="text-decoration-none">
-                        <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
-                            <div class="display-1 text-warning mb-3">⭐</div>
-                            <h4 class="fw-bold">Health Rating</h4>
-                            <p class="text-muted">Rate recipes & suggest healthier alternatives</p>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-md-6 col-lg-4">
                     <a href="{% url 'accounts:nutritionist_chatbot' %}" class="text-decoration-none">
                         <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
                             <div class="display-1 text-info mb-3">🤖</div>
                             <h4 class="fw-bold">Health AI Chat</h4>
                             <p class="text-muted">Answer visitors' nutrition questions</p>
-                        </div>
-                    </a>
-                </div>
-
-                <div class="col-md-6 col-lg-4">
-                    <a href="{% url 'accounts:nutritionist_stats' %}" class="text-decoration-none">
-                        <div class="card h-100 shadow-lg border-0 text-center p-4 bg-white hover-lift">
-                            <div class="display-1 text-danger mb-3">📈</div>
-                            <h4 class="fw-bold">Statistics & Tracking</h4>
-                            <p class="text-muted">Platform nutrition trends</p>
                         </div>
                     </a>
                 </div>

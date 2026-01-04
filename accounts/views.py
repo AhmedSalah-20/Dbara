@@ -14,6 +14,9 @@ from .models import UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite,
 from django.urls import reverse
 import google.generativeai as genai
 from django.db.models import Avg
+from django.db.models import Count
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 # ====================== BASIC VIEWS ======================
@@ -210,21 +213,46 @@ def nutritionist_dashboard(request):
     if request.user.userprofile.role != 'nutritionist':
         messages.error(request, "Access restricted to nutritionists.")
         return redirect('accounts:home')
-    
-    # Stats (à adapter selon tes modèles futurs, pour l'instant exemple)
-    analyzed_recipes = 0  # Remplacer par ton calcul réel plus tard
-    healthy_recipes = 0
-    moderate_recipes = 0
-    unhealthy_recipes = 0
 
-    # Compte des notifications non lues pour le badge
+    nutritionist = request.user
+
+    analyzed_recipes_count = RecipeAnalysis.objects.filter(nutritionist=nutritionist).count()
+    sheets_count = NutritionFactSheet.objects.filter(nutritionist=nutritionist).count()
+
+    analyses = RecipeAnalysis.objects.filter(nutritionist=nutritionist)
+    healthy_count = analyses.filter(calories__lte=400).count()
+    moderate_count = analyses.filter(calories__gt=400, calories__lte=700).count()
+    improvement_count = analyses.filter(calories__gt=700).count()
+
+    # Graphique mensuel (6 derniers mois)
+    from datetime import datetime
+    from dateutil.relativedelta import relativedelta
+
+    six_months_ago = datetime.now() - relativedelta(months=6)
+    monthly_analysis = (
+        RecipeAnalysis.objects.filter(
+            nutritionist=nutritionist,
+            analyzed_at__gte=six_months_ago
+        )
+        .extra(select={'month': "strftime('%%Y-%%m', analyzed_at)"})  # SQLite
+        .values('month')
+        .annotate(count=Count('id'))
+        .order_by('month')
+    )
+
+    months = [item['month'] for item in monthly_analysis]
+    counts = [item['count'] for item in monthly_analysis]
+
     unread_notifications_count = request.user.notifications.filter(is_read=False).count()
 
     context = {
-        'analyzed_recipes': analyzed_recipes,
-        'healthy_recipes': healthy_recipes,
-        'moderate_recipes': moderate_recipes,
-        'unhealthy_recipes': unhealthy_recipes,
+        'analyzed_recipes_count': analyzed_recipes_count,
+        'sheets_count': sheets_count,
+        'healthy_count': healthy_count,
+        'moderate_count': moderate_count,
+        'improvement_count': improvement_count,
+        'chart_months': months,
+        'chart_counts': counts,
         'unread_notifications_count': unread_notifications_count,
     }
     return render(request, 'nutritionist/dashboard.html', context)
@@ -403,13 +431,13 @@ def nutritionist_fiches(request):
     return render(request, 'nutritionist/fiches.html')
 
 
-@never_cache
-@login_required
-def nutritionist_classification(request):
-    if request.user.userprofile.role != 'nutritionist':
-        messages.error(request, "Access restricted to nutritionists.")
-        return redirect('accounts:home')
-    return render(request, 'nutritionist/classification.html')
+#@never_cache
+#@login_required
+#def nutritionist_classification(request):
+ #   if request.user.userprofile.role != 'nutritionist':
+  #      messages.error(request, "Access restricted to nutritionists.")
+   #     return redirect('accounts:home')
+    #return render(request, 'nutritionist/classification.html')
 
 
 @never_cache
@@ -418,7 +446,51 @@ def nutritionist_stats(request):
     if request.user.userprofile.role != 'nutritionist':
         messages.error(request, "Access restricted to nutritionists.")
         return redirect('accounts:home')
-    return render(request, 'nutritionist/stats.html')
+
+    nutritionist = request.user
+
+    # 1. Recettes analysées par ce nutritionniste
+    analyzed_recipes_count = RecipeAnalysis.objects.filter(nutritionist=nutritionist).count()
+
+    # 2. Fiches nutritionnelles publiées
+    sheets_count = NutritionFactSheet.objects.filter(nutritionist=nutritionist).count()
+
+    # 3. Classement santé (exemple simple basé sur calories par portion)
+    analyses = RecipeAnalysis.objects.filter(nutritionist=nutritionist)
+    healthy = analyses.filter(calories__lte=400).count()  # < 400 kcal = healthy
+    moderate = analyses.filter(calories__gt=400, calories__lte=700).count()
+    improvement = analyses.filter(calories__gt=700).count()
+
+    # 4. Analyses par mois (6 derniers mois)
+    six_months_ago = datetime.now() - relativedelta(months=6)
+    monthly_analysis = (
+        RecipeAnalysis.objects.filter(
+            nutritionist=nutritionist,
+            analyzed_at__gte=six_months_ago
+        )
+        .extra(select={'month': "strftime('%%Y-%%m', analyzed_at)"})  # SQLite
+        .values('month')
+        .annotate(count=Count('id'))
+        .order_by('month')
+    )
+
+    # Format pour le graphique
+    months = []
+    counts = []
+    for item in monthly_analysis:
+        months.append(item['month'])
+        counts.append(item['count'])
+
+    context = {
+        'analyzed_recipes_count': analyzed_recipes_count,
+        'sheets_count': sheets_count,
+        'healthy_count': healthy,
+        'moderate_count': moderate,
+        'improvement_count': improvement,
+        'chart_months': months,
+        'chart_counts': counts,
+    }
+    return render(request, 'nutritionist/stats.html', context)
 
 
 @never_cache

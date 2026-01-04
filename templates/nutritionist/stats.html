@@ -1,12 +1,103 @@
+<!-- templates/nutritionist/stats.html -->
 {% extends 'base/base.html' %}
-{% block title %}{{ title }} - Nutritionniste{% endblock %}
+{% load static %}
+
+{% block title %}Statistics & Tracking - Dbara{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <h1 class="text-center display-3 fw-bold text-success mb-4">{{ title }}</h1>
-    <div class="text-center">
-        <p class="lead">Fonctionnalité en cours de développement... bientôt disponible ! 🚀</p>
-        <a href="{% url 'accounts:nutritionist_dashboard' %}" class="btn btn-success btn-lg">← Retour au tableau de bord</a>
+    <h1 class="display-4 fw-bold text-center mb-5" style="color:#38ef7d;">
+        Statistics & Tracking
+    </h1>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-5 text-center">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white shadow hover-lift">
+                <div class="card-body p-4">
+                    <h2 class="display-5 fw-bold">{{ analyzed_recipes_count }}</h2>
+                    <p class="fs-4 mb-0">Recipes Analyzed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white shadow hover-lift">
+                <div class="card-body p-4">
+                    <h2 class="display-5 fw-bold">{{ sheets_count }}</h2>
+                    <p class="fs-4 mb-0">Nutrition Sheets Published</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark shadow hover-lift">
+                <div class="card-body p-4">
+                    <h2 class="display-5 fw-bold">{{ healthy_count }}</h2>
+                    <p class="fs-4 mb-0">Healthy Recipes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white shadow hover-lift">
+                <div class="card-body p-4">
+                    <h2 class="display-5 fw-bold">{{ improvement_count }}</h2>
+                    <p class="fs-4 mb-0">Needs Improvement</p>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Monthly Analysis Chart -->
+    {% if chart_months %}
+    <div class="card shadow-lg">
+        <div class="card-header bg-dark text-success">
+            <h4 class="mb-0">Your Analysis Activity (Last 6 Months)</h4>
+        </div>
+        <div class="card-body">
+            <canvas id="analysisChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('analysisChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_months|safe }},
+                datasets: [{
+                    label: 'Recipes Analyzed',
+                    data: {{ chart_counts|safe }},
+                    backgroundColor: '#38ef7d',
+                    borderColor: '#11998e',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    </script>
+    {% else %}
+    <div class="alert alert-info text-center">
+        <p>No analysis data yet. Start analyzing recipes to see your progress!</p>
+    </div>
+    {% endif %}
 </div>
+
+<style>
+    .hover-lift:hover {
+        transform: translateY(-10px);
+        transition: 0.3s;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+</style>
 {% endblock %}

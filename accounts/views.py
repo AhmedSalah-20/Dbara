@@ -10,7 +10,7 @@ from django.db import transaction
 from django.conf import settings
 from django.core.mail import send_mail
 from django.views.decorators.cache import never_cache
-from .models import UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite, Notification
+from .models import UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite, Notification, RecipeAnalysis
 from django.urls import reverse
 import google.generativeai as genai
 from django.db.models import Avg
@@ -380,7 +380,18 @@ def nutritionist_analyze(request):
     if request.user.userprofile.role != 'nutritionist':
         messages.error(request, "Access restricted to nutritionists.")
         return redirect('accounts:home')
-    return render(request, 'nutritionist/analyze.html')
+
+    # Toutes les recettes approuvées, triées par date (plus récentes en haut)
+    recipes = Recipe.objects.filter(is_approved=True)\
+        .select_related('author')\
+        .prefetch_related('images')\
+        .order_by('-created_at')
+
+    context = {
+        'recipes': recipes,
+        'page_title': 'Recipes to Analyze',
+    }
+    return render(request, 'nutritionist/analyze.html', context)
 
 
 @never_cache
@@ -692,3 +703,46 @@ def read_notification(request, notif_id):
 def notifications(request):
     notifications = request.user.notifications.all()
     return render(request, 'accounts/notifications.html', {'notifications': notifications})
+
+
+
+@never_cache
+@login_required
+def analyze_recipe(request, pk):
+    if request.user.userprofile.role != 'nutritionist':
+        messages.error(request, "Access restricted to nutritionists.")
+        return redirect('accounts:home')
+
+    recipe = get_object_or_404(Recipe, pk=pk, is_approved=True)
+
+    # Récupère l'analyse existante ou en crée une nouvelle (en mémoire seulement)
+    try:
+        analysis = recipe.analysis
+    except RecipeAnalysis.DoesNotExist:
+        analysis = RecipeAnalysis(recipe=recipe, nutritionist=request.user)
+
+    if request.method == 'POST':
+        # Remplissage des champs (même si certains sont vides, grâce à null=True dans le modèle)
+        analysis.calories = request.POST.get('calories') or None
+        analysis.proteins = request.POST.get('proteins') or None
+        analysis.carbs = request.POST.get('carbs') or None
+        analysis.fats = request.POST.get('fats') or None
+        analysis.health_rating = request.POST.get('health_rating') or None
+        analysis.comment = request.POST.get('comment', '')
+        analysis.save()
+
+        # === NOTIFICATION AU CHEF ===
+        Notification.objects.create(
+            user=recipe.author,  # Le Chef qui a publié la recette
+            message=f"Your recipe '{recipe.title}' has been analyzed by Dr. {request.user.username} 🥗",
+            link=reverse('accounts:recipe_detail', args=[recipe.pk]) + '#nutrition-analysis'
+        )
+
+        messages.success(request, "Nutritional analysis saved successfully! The chef has been notified.")
+        return redirect('accounts:recipe_detail', pk=pk)
+
+    context = {
+        'recipe': recipe,
+        'analysis': analysis,
+    }
+    return render(request, 'nutritionist/analyze_recipe.html', context)

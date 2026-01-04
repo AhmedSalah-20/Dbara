@@ -55,4 +55,7 @@ path('notification/<int:notif_id>/read/', views.read_notification, name='read_no
 
 path('notifications/', views.notifications, name='notifications'),
 
+path('analyze/', views.nutritionist_analyze, name='nutritionist_analyze'),
+path('analyze/<int:pk>/', views.analyze_recipe, name='analyze_recipe'),
+
 ]

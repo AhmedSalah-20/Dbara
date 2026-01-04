@@ -1,0 +1,78 @@
+<!-- templates/nutritionist/analyze_recipe.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Analyze {{ recipe.title }} - Dbara{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <h1 class="display-5 fw-bold mb-4" style="color:#38ef7d;">Analyze: {{ recipe.title }}</h1>
+            <p class="text-muted">By Chef {{ recipe.author.username }} • Published {{ recipe.created_at|date:"d M Y" }}</p>
+
+            <div class="card shadow-lg mb-5">
+                <div class="card-header bg-success text-white">
+                    <h5>Nutritional Analysis Form</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Calories</label>
+                                <input type="number" name="calories" class="form-control" value="{{ analysis.calories|default:'' }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Proteins (g)</label>
+                                <input type="number" step="0.1" name="proteins" class="form-control" value="{{ analysis.proteins|default:'' }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Carbs (g)</label>
+                                <input type="number" step="0.1" name="carbs" class="form-control" value="{{ analysis.carbs|default:'' }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Fats (g)</label>
+                                <input type="number" step="0.1" name="fats" class="form-control" value="{{ analysis.fats|default:'' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="form-label fw-bold">Health Rating</label>
+                            <select name="health_rating" class="form-select" required>
+                                <option value="">-- Select rating --</option>
+                                {% for i in "12345" %}
+                                <option value="{{ i }}" {% if analysis.health_rating == i|add:0 %}selected{% endif %}>{{ i }} ⭐</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="form-label fw-bold">Nutritionist's Comment (optional)</label>
+                            <textarea name="comment" class="form-control" rows="5" placeholder="Add advice, suggestions, or health notes...">{{ analysis.comment }}</textarea>
+                        </div>
+
+                        <div class="mt-4 text-end">
+                            <a href="{% url 'accounts:nutritionist_analyze' %}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-success btn-lg">Save Analysis</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-lg sticky-top" style="top: 20px;">
+                <img src="{% if recipe.images.first %}{{ recipe.images.first.image.url }}{% else %}{% static 'images/default-recipe.jpg' %}{% endif %}" 
+                     class="card-img-top" alt="{{ recipe.title }}">
+                <div class="card-body">
+                    <h5 class="fw-bold">{{ recipe.title }}</h5>
+                    <p class="text-muted">{{ recipe.description|truncatewords:30 }}</p>
+                    <p><strong>Servings:</strong> {{ recipe.servings }}</p>
+                    <p><strong>Prep:</strong> {{ recipe.prep_time }} min • <strong>Cook:</strong> {{ recipe.cook_time }} min</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

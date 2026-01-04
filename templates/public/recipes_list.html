@@ -13,16 +13,34 @@
     <div class="row g-4">
         {% for recipe in recipes %}
         <div class="col-md-6 col-lg-4">
-            <div class="card shadow h-100 border-0 overflow-hidden hover-lift">
+            <div class="card shadow h-100 border-0 overflow-hidden hover-lift position-relative">
+                <!-- Image -->
                 {% if recipe.images.first %}
-                    <img src="{{ recipe.images.first.image.url }}" class="card-img-top" style="height:230px; object-fit:cover;" alt="{{ recipe.title }}">
+                    <img src="{{ recipe.images.first.image.url }}" 
+                         class="card-img-top" 
+                         style="height:230px; object-fit:cover;" 
+                         alt="{{ recipe.title }}">
                 {% else %}
-                    <img src="{% static 'images/default-recipe.jpg' %}" class="card-img-top" style="height:230px; object-fit:cover;" alt="{{ recipe.title }}">
+                    <img src="{% static 'images/default-recipe.jpg' %}" 
+                         class="card-img-top" 
+                         style="height:230px; object-fit:cover;" 
+                         alt="{{ recipe.title }}">
                 {% endif %}
+
+                <!-- Badge "Analyzed" si analyse existe -->
+                {% if recipe.analysis %}
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="badge bg-success rounded-pill px-3 py-2 shadow">
+                            🥗 Analyzed by Nutritionist
+                        </span>
+                    </div>
+                {% endif %}
+
+                <!-- Card Body -->
                 <div class="card-body bg-dark text-white d-flex flex-column">
                     <h5 class="card-title fw-bold mb-2">{{ recipe.title }}</h5>
                     <p class="small text-warning mb-3">
-                        Par Chef {{ recipe.author.username }} • {{ recipe.views }} vue{{ recipe.views|pluralize }}
+                        By Chef {{ recipe.author.username }} • {{ recipe.views }} view{{ recipe.views|pluralize }}
                     </p>
 
                     <div class="mt-auto">
@@ -45,7 +63,7 @@
         </div>
         {% empty %}
         <div class="text-center py-5 col-12">
-            <p class="lead text-muted">Aucune recette publiée pour le moment...</p>
+            <p class="lead text-muted">No recipes published yet...</p>
         </div>
         {% endfor %}
     </div>

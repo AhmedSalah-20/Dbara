@@ -12,6 +12,7 @@ from django.urls import reverse
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import google.generativeai as genai
+from django.shortcuts import get_object_or_404
 
 from .models import (
     UserProfile, Recipe, RecipeImage, Comment, Rating, Favorite,
@@ -22,7 +23,8 @@ from .models import (
 def home(request):
     if request.user.is_authenticated:
         if request.user.is_staff or request.user.is_superuser:
-            return redirect('/admin/')
+            return redirect('accounts:admin_dashboard')  # ← Redirection vers ton dashboard personnalisé
+
         try:
             profile = request.user.userprofile
             if profile.role == 'chef':
@@ -135,7 +137,7 @@ def login_view(request):
             login(request, user)
 
             if user.is_staff or user.is_superuser:
-                return redirect('/admin/')
+                return redirect('accounts:admin_dashboard')  # ← CORRIGÉ : vers ton dashboard personnalisé
 
             try:
                 profile = user.userprofile
@@ -165,6 +167,89 @@ def logout_view(request):
     return response
 
 
+@never_cache
+@login_required
+def admin_dashboard(request):
+    if not request.user.is_staff:
+        messages.error(request, "Access restricted to administrators.")
+        return redirect('accounts:home')
+
+    # Statistiques générales – exclure les admins du comptage des rôles
+    total_users = User.objects.count()
+
+    total_admins = User.objects.filter(
+        models_Q(is_staff=True) | models_Q(is_superuser=True)
+    ).distinct().count()
+
+    total_visitors = UserProfile.objects.filter(
+        role='visitor',
+        user__is_staff=False,
+        user__is_superuser=False
+    ).count()
+
+    total_chefs = UserProfile.objects.filter(
+        role='chef',
+        user__is_staff=False,
+        user__is_superuser=False
+    ).count()
+
+    total_nutritionists = UserProfile.objects.filter(
+        role='nutritionist',
+        user__is_staff=False,
+        user__is_superuser=False
+    ).count()
+
+    total_recipes = Recipe.objects.count()
+    approved_recipes = Recipe.objects.filter(is_approved=True).count()
+    pending_recipes = Recipe.objects.filter(is_approved=False).count()
+
+    total_analyses = RecipeAnalysis.objects.count()
+    total_comments = Comment.objects.count()
+
+    # Utilisateurs récents avec rôle affiché correctement
+    recent_users_raw = User.objects.select_related('userprofile').order_by('-date_joined')[:10]
+
+    display_users = []
+    for u in recent_users_raw:
+        if u.is_staff or u.is_superuser:
+            display_role = "Administrator"
+        else:
+            try:
+                display_role = u.userprofile.get_role_display()
+            except UserProfile.DoesNotExist:
+                display_role = "No profile"
+        display_users.append({
+            'user': u,
+            'display_role': display_role,
+        })
+
+    # Recettes en attente d'approbation
+    pending_approval = Recipe.objects.filter(is_approved=False)\
+        .select_related('author')\
+        .prefetch_related('images')\
+        .order_by('-created_at')[:10]
+
+    # Commentaires récents (pour modération)
+    recent_comments = Comment.objects.select_related('author', 'recipe')\
+        .order_by('-created_at')[:20]
+
+    context = {
+        'total_users': total_users,
+        'total_admins': total_admins,  # ← Ajouté
+        'total_visitors': total_visitors,
+        'total_chefs': total_chefs,
+        'total_nutritionists': total_nutritionists,
+        'total_recipes': total_recipes,
+        'approved_recipes': approved_recipes,
+        'pending_recipes': pending_recipes,
+        'total_analyses': total_analyses,
+        'total_comments': total_comments,
+        'display_users': display_users,
+        'pending_approval': pending_approval,
+        'recent_comments': recent_comments,
+    }
+    return render(request, 'admin/dashboard.html', context)
+
 # ====================== PROTECTED VIEWS WITH @never_cache ======================
 @never_cache
 @login_required
@@ -184,6 +269,10 @@ def visitor_dashboard(request):
         'unread_messages_count': unread_messages_count,
     }
     return render(request, 'visitor/dashboard.html', context)
+
+
+
+
 
 
 @never_cache
@@ -1192,3 +1281,29 @@ def public_chatbot(request):
             request.session.modified = True
 
     return render(request, 'public/chatbot.html', {'chat_history': chat_history})
+
+
+@never_cache
+@login_required
+def admin_delete_comment(request, comment_id):
+    """
+    Vue pour supprimer un commentaire (réservée aux admins)
+    Accessible via POST depuis le dashboard admin
+    """
+    # Vérifie que l'utilisateur est admin
+    if not request.user.is_staff:
+        messages.error(request, "You are not authorized to perform this action.")
+        return redirect('accounts:home')
+
+    # Récupère le commentaire ou renvoie 404 si inexistant
+    comment = get_object_or_404(Comment, pk=comment_id)
+
+    if request.method == 'POST':
+        # Supprime le commentaire
+        comment.delete()
+        messages.success(request, f"Comment by {comment.author.username} has been deleted successfully.")
+        return redirect('accounts:admin_dashboard')
+
+    # Si GET (au cas où quelqu'un accède directement à l'URL)
+    messages.warning(request, "Invalid request method.")
+    return redirect('accounts:admin_dashboard')

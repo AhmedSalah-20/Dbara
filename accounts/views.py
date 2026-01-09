@@ -270,11 +270,6 @@ def visitor_dashboard(request):
     }
     return render(request, 'visitor/dashboard.html', context)
 
-
-
-
-
-
 @never_cache
 @login_required
 def chef_dashboard(request):
@@ -420,9 +415,6 @@ def edit_profile(request):
 def favorites(request):
     favorites = Favorite.objects.filter(user=request.user).select_related('recipe', 'recipe__author')
     return render(request, 'visitor/favorites.html', {'favorites': favorites})
-
-
-
 
 
 # ====================== CHEF RECIPE ACTIONS ======================
@@ -827,54 +819,9 @@ def toggle_favorite(request, pk):
         # Fallback
         return redirect('accounts:public_recipes')
 
-#@never_cache
-#@login_required
-#def nutritionist_chatbot(request):
- #   if request.user.userprofile.role != 'nutritionist':
-  #      messages.error(request, "Access restricted to nutritionists.")
-   #     return redirect('accounts:home')
-#    api_key = settings.GEMINI_API_KEY
- #   if not api_key:
-  #      messages.error(request, "Gemini API key missing.")
-   #     return render(request, 'nutritionist/chatbot.html', {'chat_history': []})
-
-#    genai.configure(api_key=api_key)
-
-    # Current working model in December 2025
- #   model = genai.GenerativeModel("gemini-2.5-flash")
-
-  #  chat_history = request.session.get('chat_history', [])
-
-   # if request.method == 'POST':
-    #    user_message = request.POST.get('message', '').strip()
-     #   if user_message:
-      #      prompt = f"""
-       #     You are Dr. {request.user.username}, a Tunisian nutritionist expert in traditional cuisine.
-        #    Answer in French or Tunisian Arabic based on the question's language.
-         #   Be precise, detailed, and give practical advice.
-          #  Question: {user_message}
-           # """
-
-            #try:
-             #   response = model.generate_content(prompt)
-              #  bot_reply = response.text.strip() if response.text else "I couldn't generate a response."
-
-     #           chat_history.append({'user': user_message, 'bot': bot_reply})
-      #      except Exception as e:
-       #         bot_reply = f"Technical error: {str(e)[:100]}..."
-        #        chat_history.append({'user': user_message, 'bot': bot_reply})
-
-         #   request.session['chat_history'] = chat_history[-30:]
-          #  request.session.modified = True
-
-#    return render(request, 'nutritionist/chatbot.html', {'chat_history': chat_history})
-
-
-
 
 @never_cache
 @login_required
-
 def mark_notifications_read(request):
     request.user.notifications.filter(is_read=False).update(is_read=True)
     messages.success(request, "All notifications marked as read.")
@@ -937,8 +884,6 @@ def analyze_recipe(request, pk):
         'analysis': analysis,
     }
     return render(request, 'nutritionist/analyze_recipe.html', context)
-
-
 
 
 @never_cache
@@ -1090,9 +1035,7 @@ def send_nutrition_message(request, recipient_id):
             recipient=recipient,
             subject=subject,
             message=message_text
-        )
-
-        
+        )        
         messages.success(request, "Message sent successfully!")
         return redirect('accounts:recipe_detail', pk=request.POST.get('recipe_id', 1))
 

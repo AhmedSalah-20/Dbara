@@ -1,0 +1,80 @@
+<!-- templates/admin/approve_professional.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Approve {{ profile.role|capfirst }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-warning text-dark text-center">
+                    <h3 class="mb-0">Review Professional Application</h3>
+                </div>
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h4><strong>{{ target_user.username }}</strong></h4>
+                        <p class="lead">{{ profile.get_role_display }}</p>
+                    </div>
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h5>Profile Information</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Email:</strong> {{ target_user.email }}</p>
+                                    <p><strong>Region:</strong> {{ profile.region|default:"Not specified" }}</p>
+                                    <p><strong>Years of Experience:</strong> {{ profile.years_experience|default:"Not specified" }}</p>
+                                    {% if profile.speciality %}
+                                    <p><strong>Speciality:</strong> {{ profile.speciality }}</p>
+                                    {% endif %}
+                                    <p><strong>Bio:</strong><br>{{ profile.bio|default:"No bio provided"|linebreaks }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h5>Certificate / Diploma</h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    {% if profile.certificate %}
+                                        <a href="{{ profile.certificate.url }}" target="_blank" class="btn btn-primary btn-lg">
+                                            <i class="bi bi-file-earmark-text"></i> View Certificate
+                                        </a>
+                                        <p class="mt-3 text-muted">Click to open in new tab</p>
+                                    {% else %}
+                                        <p class="text-danger fs-4">No certificate uploaded</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-5">
+
+                    <form method="POST" class="text-center">
+                        {% csrf_token %}
+                        <p class="lead fw-bold">Do you approve this professional account?</p>
+                        <div class="d-flex justify-content-center gap-4 flex-wrap">
+                            <button type="submit" name="action" value="approve" class="btn btn-success btn-lg px-5">
+                                <i class="bi bi-check-circle"></i> Approve & Send Welcome Email
+                            </button>
+                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-lg px-5">
+                                <i class="bi bi-x-circle"></i> Reject & Send Notification
+                            </button>
+                        </div>
+                        <div class="mt-4">
+                            <a href="{% url 'accounts:admin_manage_users' %}" class="btn btn-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+<!-- templates/admin/edit_user.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if is_admin %}Edit Administrator{% else %}Edit User{% endif %} - Admin
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-lg border-0">
+                <div class="card-header {% if is_admin %}bg-dark text-white{% else %}bg-primary text-white{% endif %}">
+                    <h3 class="mb-0">
+                        {% if is_admin %}
+                            Edit Administrator: {{ target_user.username }}
+                        {% else %}
+                            Edit User: {{ target_user.username }}
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <!-- Toujours visible : Username, Email, Password -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Username</label>
+                            <input type="text" name="username" class="form-control form-control-lg" value="{{ target_user.username }}" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" name="email" class="form-control form-control-lg" value="{{ target_user.email }}" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">New Password <small class="text-muted">(leave blank to keep current)</small></label>
+                            <input type="password" name="password" class="form-control form-control-lg" placeholder="Enter new password only if changing">
+                        </div>
+                        <div class="mb-4">
+    <label class="form-label fw-bold">Confirm New Password</label>
+    <input type="password" name="confirm_password" class="form-control form-control-lg" placeholder="Confirm new password">
+</div>
+
+                        <div class="form-check mb-4">
+                            <input type="checkbox" name="is_active" class="form-check-input" id="is_active" {% if target_user.is_active %}checked{% endif %}>
+                            <label class="form-check-label fw-bold" for="is_active">Account Active</label>
+                        </div>
+
+                        <!-- === CHAMPS UNIQUEMENT POUR LES NON-ADMINS === -->
+                        {% if not is_admin and profile %}
+                        <hr class="my-5">
+                        <h5 class="text-primary mb-4">Additional Profile Information</h5>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Role</label>
+                            <select name="role" class="form-select form-select-lg">
+                                <option value="visitor" {% if profile.role == 'visitor' %}selected{% endif %}>Visitor</option>
+                                <option value="chef" {% if profile.role == 'chef' %}selected{% endif %}>Chef</option>
+                                <option value="nutritionist" {% if profile.role == 'nutritionist' %}selected{% endif %}>Nutritionist</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Bio</label>
+                            <textarea name="bio" class="form-control" rows="4">{{ profile.bio }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Region</label>
+                                <input type="text" name="region" class="form-control form-control-lg" value="{{ profile.region }}">
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Years of Experience</label>
+                                <input type="number" name="years_experience" class="form-control form-control-lg" value="{{ profile.years_experience }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Speciality (for Chef)</label>
+                            <input type="text" name="speciality" class="form-control form-control-lg" value="{{ profile.speciality }}">
+                        </div>
+                        {% endif %}
+
+                        <!-- Boutons -->
+                        <div class="d-flex gap-3 mt-5">
+                            <button type="submit" class="btn btn-success btn-lg px-5">Save Changes</button>
+                            <a href="{% url 'accounts:admin_dashboard' %}" class="btn btn-secondary btn-lg px-5">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

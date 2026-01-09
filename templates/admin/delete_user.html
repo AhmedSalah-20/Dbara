@@ -1,0 +1,36 @@
+<!-- templates/admin/delete_user.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Delete User - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-danger text-white text-center">
+                    <h3 class="mb-0">Delete User</h3>
+                </div>
+                <div class="card-body p-5 text-center">
+                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
+                    <h4 class="mt-4">Are you sure?</h4>
+                    <p class="lead">You are about to <strong>permanently delete</strong> the user:</p>
+                    <div class="alert alert-danger">
+                        <strong>{{ target_user.username }}</strong><br>
+                        Email: {{ target_user.email }}<br>
+                        Role: {{ target_user.userprofile.role|capfirst|default:"Visitor" }}
+                    </div>
+                    <p class="text-muted">This action <strong>cannot be undone</strong>. All data associated with this user will be lost.</p>
+                    
+                    <form method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger btn-lg px-5">Yes, Delete Permanently</button>
+                    </form>
+                    <a href="{% url 'accounts:admin_manage_users' %}" class="btn btn-secondary btn-lg px-5 ms-3">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

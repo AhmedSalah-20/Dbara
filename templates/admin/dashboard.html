@@ -15,207 +15,324 @@
 
     <h1 class="display-4 fw-bold text-center mb-5 text-warning">Admin Dashboard</h1>
 
-    <!-- Statistiques Utilisateurs (5 cartes alignées) -->
-    <div class="row g-4 mb-5 text-center">
-        <div class="col-md">
-            <div class="card bg-primary text-white shadow-lg hover-lift">
-                <div class="card-body p-4">
-                    <h2 class="display-5 fw-bold">{{ total_users }}</h2>
-                    <p class="fs-4 mb-0">Total Users</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md">
-            <div class="card bg-dark text-white shadow-lg hover-lift">
-                <div class="card-body p-4">
-                    <h2 class="display-5 fw-bold">{{ total_admins }}</h2>
-                    <p class="fs-4 mb-0">Administrators</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md">
-            <div class="card bg-info text-white shadow-lg hover-lift">
-                <div class="card-body p-4">
-                    <h2 class="display-5 fw-bold">{{ total_visitors }}</h2>
-                    <p class="fs-4 mb-0">Visitors</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md">
-            <div class="card bg-success text-white shadow-lg hover-lift">
-                <div class="card-body p-4">
-                    <h2 class="display-5 fw-bold">{{ total_chefs }}</h2>
-                    <p class="fs-4 mb-0">Chefs</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md">
-            <div class="card bg-warning text-dark shadow-lg hover-lift">
-                <div class="card-body p-4">
-                    <h2 class="display-5 fw-bold">{{ total_nutritionists }}</h2>
-                    <p class="fs-4 mb-0">Nutritionists</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Onglets -->
+    <ul class="nav nav-tabs nav-fill mb-5 shadow-sm" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fs-5 fw-bold" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button">
+                Overview
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fs-5 fw-bold" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button">
+                Users Management
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fs-5 fw-bold" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button">
+                Comments Moderation
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fs-5 fw-bold" id="recipes-tab" data-bs-toggle="tab" data-bs-target="#recipes" type="button">
+                Recipes Management
+            </button>
+        </li>
+    </ul>
 
-    <!-- Statistiques Recettes -->
-    <div class="row g-4 mb-5 text-center">
-        <div class="col-md-4">
-            <div class="card bg-dark text-white shadow-lg hover-lift">
-                <div class="card-body p-4">
-                    <h2 class="display-5 fw-bold">{{ total_recipes }}</h2>
-                    <p class="fs-4 mb-0">Total Recipes</p>
+    <div class="tab-content" id="adminTabContent">
+        <!-- === TAB 1: Overview === -->
+        <div class="tab-pane fade show active" id="overview" role="tabpanel">
+            
+            <!-- Stats cartes -->
+            <div class="row g-4 mb-5 text-center">
+                <div class="col-md">
+                    <div class="card bg-primary text-white shadow-lg hover-lift border-0">
+                        <div class="card-body p-5">
+                            <h2 class="display-4 fw-bold mb-0">{{ total_users }}</h2>
+                            <p class="fs-5 mt-2 mb-0 opacity-90">Total Users</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="card bg-dark text-white shadow-lg hover-lift border-0">
+                        <div class="card-body p-5">
+                            <h2 class="display-4 fw-bold mb-0">{{ total_admins }}</h2>
+                            <p class="fs-5 mt-2 mb-0 opacity-90">Administrators</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="card bg-info text-white shadow-lg hover-lift border-0">
+                        <div class="card-body p-5">
+                            <h2 class="display-4 fw-bold mb-0">{{ total_visitors }}</h2>
+                            <p class="fs-5 mt-2 mb-0 opacity-90">Visitors</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="card bg-success text-white shadow-lg hover-lift border-0">
+                        <div class="card-body p-5">
+                            <h2 class="display-4 fw-bold mb-0">{{ total_chefs }}</h2>
+                            <p class="fs-5 mt-2 mb-0 opacity-90">Chefs</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="card bg-warning text-dark shadow-lg hover-lift border-0">
+                        <div class="card-body p-5">
+                            <h2 class="display-4 fw-bold mb-0">{{ total_nutritionists }}</h2>
+                            <p class="fs-5 mt-2 mb-0 opacity-90">Nutritionists</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-success text-white shadow-lg hover-lift">
-                <div class="card-body p-4">
-                    <h2 class="display-5 fw-bold">{{ approved_recipes }}</h2>
-                    <p class="fs-4 mb-0">Approved</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-danger text-white shadow-lg hover-lift">
-                <div class="card-body p-4">
-                    <h2 class="display-5 fw-bold">{{ pending_recipes }}</h2>
-                    <p class="fs-4 mb-0">Pending Approval</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Autres stats rapides -->
-    <div class="row g-4 mb-5 text-center">
-        <div class="col-md-6">
-            <div class="card bg-purple text-white shadow-lg hover-lift">
-                <div class="card-body p-4">
-                    <h2 class="display-5 fw-bold">{{ total_analyses }}</h2>
-                    <p class="fs-4 mb-0">Nutritional Analyses</p>
+            <!-- Stats secondaires -->
+            <div class="row g-4 mb-5 text-center">
+                <div class="col-md-4">
+                    <div class="card bg-dark text-white shadow-lg hover-lift border-0">
+                        <div class="card-body p-5">
+                            <h2 class="display-4 fw-bold mb-0">{{ total_recipes }}</h2>
+                            <p class="fs-5 mt-2 mb-0 opacity-90">Total Recipes</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success text-white shadow-lg hover-lift border-0">
+                        <div class="card-body p-5">
+                            <h2 class="display-4 fw-bold mb-0">{{ approved_recipes }}</h2>
+                            <p class="fs-5 mt-2 mb-0 opacity-90">Approved</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-danger text-white shadow-lg hover-lift border-0">
+                        <div class="card-body p-5">
+                            <h2 class="display-4 fw-bold mb-0">{{ pending_recipes }}</h2>
+                            <p class="fs-5 mt-2 mb-0 opacity-90">Pending Approval</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card bg-orange text-white shadow-lg hover-lift">
-                <div class="card-body p-4">
-                    <h2 class="display-5 fw-bold">{{ total_comments }}</h2>
-                    <p class="fs-4 mb-0">Total Comments</p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Recent Users & Pending Recipes -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-6">
-            <div class="card shadow-lg">
+            <div class="row g-4 mb-5 text-center">
+                <div class="col-md-6">
+                    <div class="card bg-purple text-white shadow-lg hover-lift border-0">
+                        <div class="card-body p-5">
+                            <h2 class="display-4 fw-bold mb-0">{{ total_analyses }}</h2>
+                            <p class="fs-5 mt-2 mb-0 opacity-90">Nutritional Analyses</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-orange text-white shadow-lg hover-lift border-0">
+                        <div class="card-body p-5">
+                            <h2 class="display-4 fw-bold mb-0">{{ total_comments }}</h2>
+                            <p class="fs-5 mt-2 mb-0 opacity-90">Total Comments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Users -->
+            <div class="card shadow-lg border-0 mb-5">
                 <div class="card-header bg-primary text-white">
-                    <h5>Recent Users</h5>
+                    <h5 class="mb-0">Recent Users</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <ul class="list-group list-group-flush">
                         {% for item in display_users %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
                             <div>
-                                <strong>{{ item.user.username }}</strong>
-                                <span class="badge bg-secondary ms-2">{{ item.display_role }}</span>
+                                <strong class="fs-5">{{ item.user.username }}</strong>
+                                <span class="badge bg-secondary ms-2 fs-6">{{ item.display_role }}</span>
                             </div>
                             <small class="text-muted">{{ item.user.date_joined|date:"d M Y" }}</small>
                         </li>
                         {% empty %}
-                        <li class="list-group-item text-center text-muted">No users yet</li>
+                        <li class="list-group-item text-center text-muted py-5">No users yet</li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6">
-            <div class="card shadow-lg">
-                <div class="card-header bg-warning text-dark">
-                    <h5>Recipes Pending Approval ({{ pending_recipes }})</h5>
+        <!-- === TAB 2: Users Management === -->
+        <div class="tab-pane fade" id="users" role="tabpanel">
+            {% include 'admin/manage_users.html' %}
+        </div>
+
+        <!-- === TAB 3: Comments Moderation === -->
+        <div class="tab-pane fade" id="comments" role="tabpanel">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Recent Comments (Moderation)</h5>
                 </div>
-                <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        {% for recipe in pending_approval %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ recipe.title }}</strong><br>
-                                <small class="text-muted">by {{ recipe.author.username }}</small>
-                            </div>
-                            <a href="{% url 'admin:accounts_recipe_change' recipe.pk %}" class="btn btn-sm btn-outline-primary">
-                                Review
-                            </a>
-                        </li>
-                        {% empty %}
-                        <li class="list-group-item text-center text-success fw-bold">All recipes approved! 🎉</li>
-                        {% endfor %}
-                    </ul>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Recipe</th>
+                                    <th>Comment</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for comment in recent_comments %}
+                                <tr>
+                                    <td><strong>{{ comment.author.username }}</strong></td>
+                                    <td>
+                                        <a href="{% url 'accounts:recipe_detail' comment.recipe.pk %}" class="text-decoration-none">
+                                            {{ comment.recipe.title }}
+                                        </a>
+                                    </td>
+                                    <td>{{ comment.content|truncatewords:20 }}</td>
+                                    <td>{{ comment.created_at|date:"d M H:i" }}</td>
+                                    <td>
+                                        <form method="POST" action="{% url 'accounts:admin_delete_comment' comment.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this comment permanently?')">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-5">No comments yet</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modération des commentaires -->
-    <div class="card shadow-lg border-0 mb-5">
-        <div class="card-header bg-danger text-white">
-            <h5>Recent Comments (Moderation)</h5>
+   <!-- === TAB 4: Recipes Management === -->
+<div class="tab-pane fade" id="recipes" role="tabpanel">
+    <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">All Recipes ({{ all_recipes.count }})</h5>
+            <div>
+                <div>
+    <button type="submit" form="recipes-form" name="action" value="approve" 
+            class="btn btn-success btn-sm me-2">
+        <i class="bi bi-check-circle"></i> Approve Selected
+    </button>
+    <button type="submit" form="recipes-form" name="action" value="delete" 
+            class="btn btn-danger btn-sm"
+            onclick="return confirm('Supprimer définitivement les recettes sélectionnées ? Cette action est irréversible.')">
+        <i class="bi bi-trash"></i> Delete Selected
+    </button>
+</div>
+            </div>
         </div>
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>User</th>
-                            <th>Recipe</th>
-                            <th>Comment</th>
-                            <th>Date</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for comment in recent_comments %}
-                        <tr>
-                            <td><strong>{{ comment.author.username }}</strong></td>
-                            <td>
-                                <a href="{% url 'accounts:recipe_detail' comment.recipe.pk %}">
-                                    {{ comment.recipe.title }}
-                                </a>
-                            </td>
-                            <td>{{ comment.content|truncatewords:15 }}</td>
-                            <td>{{ comment.created_at|date:"d M H:i" }}</td>
-                            <td>
-                                <form method="POST" action="{% url 'accounts:admin_delete_comment' comment.pk %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this comment permanently?')">
-                                        Delete
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">No comments yet</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            <form id="recipes-form" method="POST" action="{% url 'accounts:admin_manage_recipes' %}">
+                {% csrf_token %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="select-all-recipes">
+                                </th>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>Created</th>
+                                <th>Status</th>
+                                <th>Views</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for recipe in all_recipes %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="recipe_ids" value="{{ recipe.pk }}" class="recipe-checkbox">
+                                </td>
+                                <td><strong>{{ recipe.title }}</strong></td>
+                                <td>{{ recipe.author.username }}</td>
+                                <td>{{ recipe.created_at|date:"d M Y" }}</td>
+                                <td>
+                                    {% if recipe.is_approved %}
+                                    <span class="badge bg-success">Approved</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ recipe.views }}</td>
+                                <td>
+                                    <a href="{% url 'admin:accounts_recipe_change' recipe.pk %}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">No recipes yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
+<script>
+    // Select all checkboxes for recipes
+    document.getElementById('select-all-recipes').addEventListener('click', function() {
+        document.querySelectorAll('.recipe-checkbox').forEach(cb => {
+            cb.checked = this.checked;
+        });
+    });
+</script>
+
+
+    </div>
+</div>
+
 <style>
-    .hover-lift {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    .nav-tabs .nav-link {
+        border: none;
+        border-bottom: 4px solid transparent;
+        border-radius: 0;
+        padding: 15px 20px;
+    }
+    .nav-tabs .nav-link.active {
+        border-bottom: 4px solid #ffc107;
+        background-color: transparent !important;
+        color: #ffc107 !important;
     }
     .hover-lift:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
+        transform: translateY(-10px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.2) !important;
     }
-    .bg-purple { background: linear-gradient(135deg, #6a11cb, #2575fc); }
-    .bg-orange { background: linear-gradient(135deg, #ff7e5f, #feb47b); }
+    .bg-purple { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .bg-orange { background: linear-gradient(135deg, #f093fb, #f5576c); }
 </style>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Récupère le hash de l'URL (ex: #users)
+        const hash = window.location.hash;
+
+        if (hash) {
+            // Trouve le bouton de l'onglet correspondant
+            const tabButton = document.querySelector(`button[data-bs-target="${hash}"]`);
+            if (tabButton) {
+                // Active l'onglet via Bootstrap
+                const tab = new bootstrap.Tab(tabButton);
+                tab.show();
+            }
+        }
+    });
+</script>
 {% endblock %}

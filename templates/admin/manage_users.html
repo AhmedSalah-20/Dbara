@@ -1,0 +1,207 @@
+<!-- templates/admin/manage_users.html -->
+<div class="container py-5">
+    <!-- Bouton Add New User -->
+    <div class="text-end mb-4">
+        <a href="{% url 'accounts:admin_add_user' %}" class="btn btn-success btn-lg px-5">
+            <i class="bi bi-person-plus-fill"></i> Add New User
+        </a>
+    </div>
+
+    <h2 class="fw-bold text-center mb-5">Manage Users</h2>
+
+    <!-- Barre de recherche combinée : instantanée + permanente -->
+    <!-- Une seule barre de recherche : instantanée + permanente -->
+<div class="mb-5">
+    <h5 class="fw-bold mb-3">Recherche dans les utilisateurs</h5>
+
+    <form method="GET" action="{% url 'accounts:admin_dashboard' %}#users" class="d-flex align-items-center position-relative">
+        <input type="text" 
+               name="q" 
+               id="live-search" 
+               class="form-control form-control-lg me-2 rounded-pill shadow-sm" 
+               placeholder="Rechercher par username, email ou rôle..." 
+               value="{{ search_query|default:'' }}" 
+               autocomplete="off"
+               style="padding-right: 60px;">
+        
+        <button type="submit" class="btn btn-warning btn-lg rounded-pill position-absolute end-0 me-2" style="z-index: 10;">
+            <i class="bi bi-search"></i> Go
+        </button>
+    </form>
+
+    <!-- Affichage du résultat actuel -->
+    {% if search_query %}
+    <div class="mt-3 alert alert-info py-2 d-inline-block">
+        <small>
+            <i class="bi bi-check-circle-fill"></i>
+            Résultats pour : <strong>"{{ search_query }}"</strong>
+            <a href="{% url 'accounts:admin_dashboard' %}#users" class="ms-2 text-decoration-none">✖ Effacer</a>
+        </small>
+    </div>
+    {% endif %}
+</div>
+
+    <!-- Alertes doublons -->
+    {% if duplicate_emails or duplicate_usernames %}
+    <div class="alert alert-warning shadow-sm" role="alert">
+        <h5 class="alert-heading">⚠️ Possible Duplicates Detected</h5>
+        {% if duplicate_emails %}
+        <p class="mb-2"><strong>Duplicate emails:</strong>
+            {% for d in duplicate_emails %}
+            {{ d.email }} ({{ d.count }} fois){% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+        {% endif %}
+        {% if duplicate_usernames %}
+        <p class="mb-0"><strong>Duplicate usernames:</strong>
+            {% for d in duplicate_usernames %}
+            {{ d.username }} ({{ d.count }} fois){% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Pending professionals -->
+    {% if pending_professionals %}
+    <div class="card mb-5 border-warning shadow-lg">
+        <div class="card-header bg-warning text-dark fw-bold fs-5">
+            Pending Professional Approval ({{ pending_professionals.count }})
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-4">
+                {% for user in pending_professionals %}
+                <div class="col-md-4 col-lg-3">
+                    <div class="card h-100 shadow-sm hover-lift border-0">
+                        <div class="card-body text-center p-4">
+                            <h5 class="card-title fw-bold">{{ user.username }}</h5>
+                            <p class="text-muted mb-2">{{ user.userprofile.get_role_display }}</p>
+                            <p class="small"><strong>Email:</strong> {{ user.email }}</p>
+                            <p class="small"><strong>Région:</strong> {{ user.userprofile.region|default:"-" }}</p>
+                            {% if user.userprofile.certificate %}
+                            <a href="{{ user.userprofile.certificate.url }}" target="_blank" class="btn btn-info btn-sm mb-2 w-100">
+                                <i class="bi bi-file-earmark-text"></i> View Certificate
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'accounts:admin_approve_professional' user.pk %}" class="btn btn-success btn-sm w-100">
+                                <i class="bi bi-check-circle"></i> Review Application
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- All users table -->
+    <h4 class="mb-4">All Users ({{ all_users.count }})</h4>
+    <div class="table-responsive shadow-lg rounded">
+        <table class="table table-striped table-hover align-middle mb-0" id="users-table">
+            <thead class="table-dark">
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Date Joined</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in all_users %}
+                <tr>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.is_staff or user.is_superuser %}
+                        <span class="badge bg-dark">Administrator</span>
+                        {% else %}
+                        <span class="badge bg-primary">{{ user.userprofile.role|capfirst|default:"Visitor" }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-danger">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.date_joined|date:"d M Y" }}</td>
+                    <td class="text-center">
+                        <a href="{% url 'accounts:admin_edit_user' user.pk %}" class="btn btn-sm btn-primary me-1">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a href="{% url 'accounts:admin_delete_user' user.pk %}" class="btn btn-sm btn-danger">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5 text-muted">No users found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Script de recherche instantanée + synchronisation avec recherche permanente -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const liveSearch = document.getElementById('live-search');
+        const tableRows = document.querySelectorAll('#users-table tbody tr');
+
+        function filterTable(query) {
+            query = query.toLowerCase().trim();
+            let visibleCount = 0;
+
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            let noResultsRow = document.getElementById('no-results-row');
+            if (visibleCount === 0 && query !== '') {
+                if (!noResultsRow) {
+                    const tbody = document.querySelector('#users-table tbody');
+                    const tr = document.createElement('tr');
+                    tr.id = 'no-results-row';
+                    tr.innerHTML = `<td colspan="6" class="text-center py-5 text-muted fs-5">
+                        Aucun utilisateur trouvé pour "<strong>${query}</strong>"
+                    </td>`;
+                    tbody.appendChild(tr);
+                }
+            } else {
+                if (noResultsRow) noResultsRow.remove();
+            }
+        }
+
+        // Recherche instantanée
+        liveSearch.addEventListener('input', function () {
+            filterTable(this.value);
+        });
+
+        // Appliquer la recherche permanente au chargement (si ?q=...)
+        {% if search_query %}
+        filterTable("{{ search_query|escapejs }}");
+        {% endif %}
+    });
+</script>
+
+<style>
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+    }
+</style>

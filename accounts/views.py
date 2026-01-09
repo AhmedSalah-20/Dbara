@@ -171,10 +171,10 @@ def logout_view(request):
 @login_required
 def admin_dashboard(request):
     if not request.user.is_staff:
-        messages.error(request, "Access restricted to administrators.")
+        messages.error(request, "Accès restreint aux administrateurs.")
         return redirect('accounts:home')
 
-    # Statistiques générales – exclure les admins du comptage des rôles
+    # ====================== STATISTIQUES GÉNÉRALES ======================
     total_users = User.objects.count()
 
     total_admins = User.objects.filter(
@@ -206,7 +206,7 @@ def admin_dashboard(request):
     total_analyses = RecipeAnalysis.objects.count()
     total_comments = Comment.objects.count()
 
-    # Utilisateurs récents avec rôle affiché correctement
+    # ====================== OVERVIEW TAB DATA ======================
     recent_users_raw = User.objects.select_related('userprofile').order_by('-date_joined')[:10]
 
     display_users = []
@@ -223,19 +223,53 @@ def admin_dashboard(request):
             'display_role': display_role,
         })
 
-    # Recettes en attente d'approbation
     pending_approval = Recipe.objects.filter(is_approved=False)\
         .select_related('author')\
         .prefetch_related('images')\
         .order_by('-created_at')[:10]
 
-    # Commentaires récents (pour modération)
     recent_comments = Comment.objects.select_related('author', 'recipe')\
         .order_by('-created_at')[:20]
 
+    # ====================== USERS MANAGEMENT TAB + SEARCH ======================
+    search_query = request.GET.get('q', '').strip()
+
+    all_users = User.objects.select_related('userprofile').order_by('-date_joined')
+
+    if search_query:
+        all_users = all_users.filter(
+            models_Q(username__icontains=search_query) |
+            models_Q(email__icontains=search_query) |
+            models_Q(userprofile__role__icontains=search_query)
+        )
+
+    # Détection des doublons
+    duplicate_emails = User.objects.exclude(email__exact='')\
+        .exclude(email__isnull=True)\
+        .values('email')\
+        .annotate(count=Count('id'))\
+        .filter(count__gt=1)
+
+    duplicate_usernames = User.objects.values('username')\
+        .annotate(count=Count('id'))\
+        .filter(count__gt=1)
+
+    # Professionnels en attente d'approbation
+    pending_professionals = User.objects.filter(
+        is_active=False,
+        userprofile__role__in=['chef', 'nutritionist']
+    ).select_related('userprofile').order_by('-date_joined')
+
+    # ====================== RECIPES MANAGEMENT TAB ======================
+    all_recipes = Recipe.objects.select_related('author')\
+        .prefetch_related('images')\
+        .order_by('-created_at')
+
+    # ====================== CONTEXT ======================
     context = {
+        # Stats overview
         'total_users': total_users,
-        'total_admins': total_admins,  # ← Ajouté
+        'total_admins': total_admins,
         'total_visitors': total_visitors,
         'total_chefs': total_chefs,
         'total_nutritionists': total_nutritionists,
@@ -244,10 +278,23 @@ def admin_dashboard(request):
         'pending_recipes': pending_recipes,
         'total_analyses': total_analyses,
         'total_comments': total_comments,
+
+        # Overview tab
         'display_users': display_users,
         'pending_approval': pending_approval,
         'recent_comments': recent_comments,
+
+        # Users Management tab
+        'all_users': all_users,
+        'search_query': search_query,
+        'duplicate_emails': duplicate_emails,
+        'duplicate_usernames': duplicate_usernames,
+        'pending_professionals': pending_professionals,
+
+        # Recipes Management tab
+        'all_recipes': all_recipes,
     }
+
     return render(request, 'admin/dashboard.html', context)
 
 # ====================== PROTECTED VIEWS WITH @never_cache ======================
@@ -1250,3 +1297,282 @@ def admin_delete_comment(request, comment_id):
     # Si GET (au cas où quelqu'un accède directement à l'URL)
     messages.warning(request, "Invalid request method.")
     return redirect('accounts:admin_dashboard')
+
+@never_cache
+@login_required
+def admin_manage_users(request):
+    if not request.user.is_staff:
+        messages.error(request, "Unauthorized access.")
+        return redirect('accounts:admin_dashboard')
+
+    # Tous les utilisateurs avec profil
+    users = User.objects.select_related('userprofile').order_by('-date_joined')
+
+    # Détection des doublons
+    duplicate_emails = User.objects.values('email')\
+        .annotate(count=Count('id'))\
+        .filter(count__gt=1, email__isnull=False, email__exact='')
+
+    duplicate_usernames = User.objects.values('username')\
+        .annotate(count=Count('id'))\
+        .filter(count__gt=1)
+
+    # Utilisateurs en attente d'approbation (chefs/nutritionnistes inactifs)
+    pending_professionals = User.objects.filter(
+        is_active=False,
+        userprofile__role__in=['chef', 'nutritionist']
+    ).select_related('userprofile')
+
+    context = {
+        'users': users,
+        'duplicate_emails': duplicate_emails,
+        'duplicate_usernames': duplicate_usernames,
+        'pending_professionals': pending_professionals,
+    }
+    return render(request, 'admin/manage_users.html', context)
+
+
+@never_cache
+@login_required
+def admin_edit_user(request, user_id):
+    if not request.user.is_staff:
+        messages.error(request, "Accès non autorisé.")
+        return redirect('accounts:admin_dashboard')
+
+    user = get_object_or_404(User, pk=user_id)
+    profile = getattr(user, 'userprofile', None)
+
+    # Détermine si c'est un administrateur
+    is_admin = user.is_staff or user.is_superuser
+
+    if request.method == 'POST':
+        # Récupération des mots de passe
+        new_password = request.POST.get('password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+
+        # Vérification de la confirmation du mot de passe
+        if new_password or confirm_password:
+            if new_password != confirm_password:
+                messages.error(request, "Les deux champs de mot de passe ne correspondent pas.")
+                return render(request, 'admin/edit_user.html', {
+                    'target_user': user,
+                    'profile': profile,
+                    'is_admin': is_admin,
+                })
+            # Si tout est bon et qu'il y a un nouveau mot de passe → on le définit
+            if new_password:
+                user.set_password(new_password)
+
+        # Mise à jour des champs communs
+        user.username = request.POST['username'].strip()
+        user.email = request.POST['email'].strip()
+        user.is_active = 'is_active' in request.POST
+
+        # Mise à jour du profil uniquement pour les non-administrateurs
+        if not is_admin and profile:
+            profile.role = request.POST['role']
+            profile.bio = request.POST.get('bio', profile.bio)
+            profile.region = request.POST.get('region', profile.region)
+            profile.years_experience = request.POST.get('years_experience') or None
+            profile.speciality = request.POST.get('speciality', profile.speciality)
+            profile.save()
+
+        user.save()
+
+        messages.success(request, f"L'utilisateur {user.username} a été modifié avec succès.")
+        return redirect('accounts:admin_dashboard')  # ou 'admin_manage_users' si tu utilises la page séparée
+
+    # GET : affichage du formulaire
+    context = {
+        'target_user': user,
+        'profile': profile,
+        'is_admin': is_admin,
+    }
+    return render(request, 'admin/edit_user.html', context)
+
+@never_cache
+@login_required
+def admin_delete_user(request, user_id):
+    if not request.user.is_staff:
+        messages.error(request, "Accès non autorisé.")
+        return redirect('accounts:admin_dashboard')
+
+    user = get_object_or_404(User, pk=user_id)
+
+    # Empêche la suppression de son propre compte
+    if user == request.user:
+        messages.error(request, "Vous ne pouvez pas supprimer votre propre compte administrateur.")
+        return redirect('accounts:admin_dashboard')
+
+    if request.method == 'POST':
+        username = user.username  # On garde le nom pour le message
+        user.delete()
+        messages.success(request, f"L'utilisateur {username} a été supprimé avec succès.")
+        return redirect('accounts:admin_dashboard')  # ← Redirection directe vers dashboard
+
+    # Si GET : affiche la page de confirmation
+    context = {'target_user': user}
+    return render(request, 'admin/delete_user.html', context)
+
+
+@never_cache
+@login_required
+def admin_approve_professional(request, user_id):
+    if not request.user.is_staff:
+        messages.error(request, "Unauthorized.")
+        return redirect('accounts:admin_dashboard')
+
+    user = get_object_or_404(User, pk=user_id, is_active=False)
+    profile = user.userprofile
+
+    if profile.role not in ['chef', 'nutritionist']:
+        messages.error(request, "This user is not a professional.")
+        return redirect('accounts:admin_manage_users')
+
+    if request.method == 'POST':
+        action = request.POST.get('action')  # 'approve' or 'reject'
+        user.is_active = (action == 'approve')
+        user.save()
+
+        role_name = "Chef" if profile.role == 'chef' else "Nutritionist"
+
+        if action == 'approve':
+            subject = f"Your {role_name} account on Dbara has been approved!"
+            message = f"Dear {user.username},\n\nCongratulations! Your {role_name.lower()} account has been approved.\nYou can now log in and start sharing your expertise.\n\nWelcome to the Dbara community!\n\nBest regards,\nDbara Team"
+        else:
+            subject = f"Your {role_name} account approval"
+            message = f"Dear {user.username},\n\nWe regret to inform you that your {role_name.lower()} account could not be approved at this time.\nFeel free to contact us for more information.\n\nBest regards,\nDbara Team"
+
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+        messages.success(request, f"{role_name} {user.username} has been {action}d and notified by email.")
+
+        return redirect('accounts:admin_manage_users')
+
+    context = {'target_user': user, 'profile': profile}
+    return render(request, 'admin/approve_professional.html', context)
+
+
+@never_cache
+@login_required
+def admin_add_user(request):
+    if not request.user.is_staff:
+        messages.error(request, "Accès non autorisé. Seuls les administrateurs peuvent ajouter des utilisateurs.")
+        return redirect('accounts:admin_dashboard')
+
+    if request.method == 'POST':
+        username = request.POST['username'].strip()
+        email = request.POST['email'].strip()
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+        role = request.POST.get('role', 'visitor')  # visitor, chef, nutritionist ou admin
+        is_active = 'is_active' in request.POST  # coche pour activer immédiatement
+
+        # Validations de base
+        errors = []
+        if not username:
+            errors.append("Le nom d'utilisateur est obligatoire.")
+        if not email:
+            errors.append("L'email est obligatoire.")
+        if not password1:
+            errors.append("Le mot de passe est obligatoire.")
+
+        if password1 != password2:
+            errors.append("Les deux mots de passe ne correspondent pas.")
+
+        if User.objects.filter(username=username).exists():
+            errors.append("Ce nom d'utilisateur est déjà pris.")
+
+        if User.objects.filter(email=email).exists():
+            errors.append("Cet email est déjà utilisé.")
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'admin/add_user.html', {
+                'username': username,
+                'email': email,
+                'role': role,
+            })
+
+        # Création de l'utilisateur
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password1,
+                is_active=is_active
+            )
+
+            # Création du profil (rôle par défaut visitor)
+            profile = UserProfile.objects.create(user=user, role='visitor')
+
+            # Gestion selon le rôle choisi
+            if role == 'admin':
+                # Administrateur : accès complet
+                user.is_staff = True
+                user.is_superuser = True  # Donne tous les droits admin
+                user.save()
+                # Le rôle dans UserProfile reste 'visitor' car le vrai statut est is_staff/is_superuser
+                messages.success(request, f"Administrateur '{username}' créé avec succès ! Il peut se connecter immédiatement.")
+
+            elif role in ['chef', 'nutritionist']:
+                # Rôle professionnel
+                profile.role = role
+                profile.region = request.POST.get('region', '')
+                profile.years_experience = request.POST.get('years_experience') or None
+                profile.bio = request.POST.get('bio', '')
+                if role == 'chef':
+                    profile.speciality = request.POST.get('speciality', '')
+
+                # Uploads
+                if 'profile_picture' in request.FILES:
+                    profile.profile_picture = request.FILES['profile_picture']
+                if 'certificate' in request.FILES:
+                    profile.certificate = request.FILES['certificate']
+
+                profile.save()
+
+                if not is_active:
+                    user.is_active = False
+                    user.save()
+                    messages.success(request, f"{role.capitalize()} '{username}' créé ! En attente d'approbation (compte inactif).")
+                else:
+                    messages.success(request, f"{role.capitalize()} '{username}' créé et activé immédiatement !")
+
+            else:
+                # Visitor classique
+                profile.role = 'visitor'
+                profile.save()
+                messages.success(request, f"Visiteur '{username}' créé avec succès !")
+
+        return redirect('accounts:admin_dashboard')
+
+    # GET : affichage du formulaire vierge
+    return render(request, 'admin/add_user.html')
+
+
+@never_cache
+@login_required
+def admin_manage_recipes(request):
+    if not request.user.is_staff:
+        messages.error(request, "Accès non autorisé.")
+        return redirect('accounts:admin_dashboard')
+
+    if request.method == 'POST':
+        recipe_ids = request.POST.getlist('recipe_ids')
+        action = request.POST.get('action')
+
+        if not recipe_ids:
+            messages.warning(request, "Aucune recette sélectionnée.")
+        elif action == 'approve':
+            updated = Recipe.objects.filter(pk__in=recipe_ids, is_approved=False).update(is_approved=True)
+            messages.success(request, f"{updated} recette(s) approuvée(s) avec succès.")
+        elif action == 'delete':
+            deleted_count, _ = Recipe.objects.filter(pk__in=recipe_ids).delete()
+            messages.success(request, f"{deleted_count} recette(s) supprimée(s) définitivement.")
+        else:
+            messages.error(request, "Action inconnue.")
+
+        return redirect(reverse('accounts:admin_dashboard') + '#recipes')  # ← CORRIGÉ ICI
+
+    return redirect(reverse('accounts:admin_dashboard') + '#recipes')

@@ -1,0 +1,118 @@
+<!-- templates/admin/add_user.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Add New User - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0">Créer un nouvel utilisateur</h3>
+                </div>
+                <div class="card-body p-5">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Nom d'utilisateur <span class="text-danger">*</span></label>
+                                <input type="text" name="username" class="form-control form-control-lg" required>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Email <span class="text-danger">*</span></label>
+                                <input type="email" name="email" class="form-control form-control-lg" required>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Mot de passe <span class="text-danger">*</span></label>
+                                <input type="password" name="password1" class="form-control form-control-lg" required>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">Confirmer le mot de passe <span class="text-danger">*</span></label>
+                                <input type="password" name="password2" class="form-control form-control-lg" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Rôle</label>
+                            <select name="role" id="role-select" class="form-select form-select-lg">
+                                <option value="visitor">Visitor</option>
+                                <option value="chef">Chef</option>
+                                <option value="nutritionist">Nutritionist</option>
+                                <option value="admin">Administrator (staff)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check mb-4">
+                            <input type="checkbox" name="is_active" class="form-check-input" id="is_active" checked>
+                            <label class="form-check-label fw-bold" for="is_active">Compte actif immédiatement</label>
+                            <small class="text-muted d-block">Décocher pour mettre en attente d'approbation (chefs/nutritionnistes)</small>
+                        </div>
+
+                        <!-- Champs supplémentaires pour chef/nutritionist -->
+                        <div id="professional-fields">
+                            <hr class="my-5">
+                            <h5 class="text-primary mb-4">Informations professionnelles (Chef / Nutritionniste)</h5>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Région</label>
+                                <input type="text" name="region" class="form-control form-control-lg">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Années d'expérience</label>
+                                <input type="number" name="years_experience" class="form-control form-control-lg" min="0">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Spécialité (uniquement pour Chef)</label>
+                                <input type="text" name="speciality" class="form-control form-control-lg">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Bio / Description</label>
+                                <textarea name="bio" class="form-control" rows="4"></textarea>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Photo de profil</label>
+                                <input type="file" name="profile_picture" class="form-control form-control-lg">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Certificat / Diplôme (PDF ou image)</label>
+                                <input type="file" name="certificate" class="form-control form-control-lg" accept=".pdf,.jpg,.jpeg,.png">
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 mt-5">
+                            <button type="submit" class="btn btn-success btn-lg px-5">Créer l'utilisateur</button>
+                            <a href="{% url 'accounts:admin_dashboard' %}" class="btn btn-secondary btn-lg px-5">Annuler</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Masquer les champs pro si rôle = visitor ou admin
+    document.getElementById('role-select').addEventListener('change', function() {
+        const proFields = document.getElementById('professional-fields');
+        const role = this.value;
+        if (role === 'visitor' || role === 'admin') {
+            proFields.style.display = 'none';
+        } else {
+            proFields.style.display = 'block';
+        }
+    });
+    // Initial hide
+    document.getElementById('professional-fields').style.display = 'none';
+</script>
+{% endblock %}

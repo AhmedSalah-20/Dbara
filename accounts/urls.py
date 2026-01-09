@@ -76,4 +76,14 @@ urlpatterns = [
 
     # Chatbot public (unique pour tous)
     path('chatbot/', views.public_chatbot, name='public_chatbot'),
+
+
+  path('admin-dashboard/manage-users/', views.admin_manage_users, name='admin_manage_users'),
+path('admin-dashboard/edit-user/<int:user_id>/', views.admin_edit_user, name='admin_edit_user'),
+path('admin-dashboard/delete-user/<int:user_id>/', views.admin_delete_user, name='admin_delete_user'),
+path('admin-dashboard/approve-professional/<int:user_id>/', views.admin_approve_professional, name='admin_approve_professional'),
+path('admin-dashboard/add-user/', views.admin_add_user, name='admin_add_user'),
+
+
+path('admin-dashboard/manage-recipes/', views.admin_manage_recipes, name='admin_manage_recipes'),
 ]
